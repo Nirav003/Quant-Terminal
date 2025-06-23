@@ -1,0 +1,17 @@
+{
+  "assets": [
+    {
+      "ticker": "BTC-USD",
+      "table_name": "btc_usd"
+    },
+    {
+      "ticker": "ETH-USD",
+      "table_name": "eth_usd"
+    },
+    {
+      "ticker": "XAUUSD=X",
+      "table_name": "xau_usd"
+    }
+  ],
+  "start_date": "2015-01-01"
+}

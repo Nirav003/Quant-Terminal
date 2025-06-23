@@ -1,1 +1,5 @@
-# code
+db-sqlite3  
+requests
+pandas
+numpy
+yfinance
