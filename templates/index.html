@@ -1,0 +1,85 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<!-- ✅ TradingView Advanced Chart Widget -->
+{% if symbol %}
+<div class="section">
+  <h3>📈 {{ symbol }} Market Chart</h3>
+  <div class="tradingview-widget-container" style="height:600px; width:100%">
+    <div id="tv_chart_container" style="height:100%; width:100%"></div>
+  </div>
+  <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+  <script type="text/javascript">
+    new TradingView.widget({
+      autosize: true,
+      symbol: "{{ symbol }}",
+      interval: "D",
+      timezone: "Etc/UTC",
+      theme: "dark",
+      style: "1",
+      locale: "en",
+      container_id: "tv_chart_container",
+      enable_publishing: false,
+      allow_symbol_change: true,
+      hide_side_toolbar: false,
+      withdateranges: true,
+      details: true,
+      hotlist: true,
+      calendar: true
+    });
+  </script>
+</div>
+{% else %}
+  <h2>📈 No symbol selected</h2>
+{% endif %}
+
+<!-- ⚠️ Error Section -->
+{% if error %}
+  <div class="section">
+    <p style="color: red; font-weight: bold;">⚠️ {{ error }}</p>
+  </div>
+{% endif %}
+
+<!-- 📊 BTC Summary Section -->
+{% if summary %}
+  <div class="section">
+    <h3>📊 BTC Summary</h3>
+    <ul>
+      <li><strong>Volatility (7D):</strong> {{ summary.volatility }}</li>
+      <li><strong>Sharpe Ratio:</strong> {{ summary.sharpe }}</li>
+      <li><strong>Latest Return (%):</strong> {{ summary.return }}%</li>
+      <li><strong>Volume:</strong> {{ "{:,}".format(summary.volume) }}</li>
+      <li><strong>Trend (1m/5m/15m):</strong> {{ summary.trend_1m }}, {{ summary.trend_5m }}, {{ summary.trend_15m }}</li>
+      <li><strong>RSI (14d):</strong> {{ summary.rsi }}</li>
+      <li><strong>MACD:</strong> {{ summary.macd }} | <strong>Signal:</strong> {{ summary.macd_signal }}</li>
+    </ul>
+  </div>
+{% else %}
+  <p>📉 No summary data available.</p>
+{% endif %}
+
+<!-- 📈 Price Chart Section -->
+{% if chart %}
+  <div class="section">
+    <h3>📈 BTC Technical Price Chart</h3>
+    <div>{{ chart | safe }}</div>
+  </div>
+{% else %}
+  <p>📉 No chart data available.</p>
+{% endif %}
+
+<!-- 📰 BTC News Section -->
+{% if news %}
+  <div class="section">
+    <h3>📰 BTC News (from Wikipedia)</h3>
+    <ul>
+      {% for item in news %}
+        <li>{{ item }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+{% else %}
+  <p>🗞️ No news found.</p>
+{% endif %}
+
+{% endblock %}

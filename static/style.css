@@ -1,0 +1,22 @@
+body {
+    background-color: #1e1e1e;
+    color: white;
+    font-family: monospace;
+}
+.navbar {
+    background-color: #121212;
+    padding: 15px;
+}
+.container {
+    margin: 20px;
+}
+li {
+    margin-bottom: 5px;
+}
+.section {
+  background-color: #121212;
+  padding: 20px;
+  margin-bottom: 30px;
+  border-radius: 10px;
+  border: 1px solid #333;
+}
