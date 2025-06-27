@@ -1,33 +1,64 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="bg-gray-900 text-white">
 <head>
-  <meta charset="UTF-8">
-  <title>📊 Quant Terminal</title>
-  <style>
-    body {
-      background-color: #121212;
-      color: #f0f0f0;
-      font-family: Arial, sans-serif;
-      margin: 20px;
-    }
-    .section {
-      background-color: #1e1e1e;
-      padding: 20px;
-      margin-bottom: 25px;
-      border-radius: 12px;
-      border: 1px solid #333;
-    }
-    ul {
-      list-style-type: disc;
-      margin-left: 20px;
-    }
-  </style>
-  <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quant Terminal - TradeBot</title>
+  <link rel="icon" href="{{url_for('static', filename='logo.png')}}" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="/static/style.css" /> 
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libertinus+Math&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <h1>🟢 Quant Terminal - BTC Dashboard</h1>
-  {% block content %}
-  {% endblock %}
+<body class="flex flex-col h-screen overflow-y-auto">
+
+  <!-- Navbar -->
+  <header class="fixed top-0 left-0 right-0 h-14 bg-gray-800 border-b border-gray-700 z-50 flex items-center justify-between px-6">
+    <h1 class="text-xl font-bold text-green-400 font-mono">Quant Terminal</h1>
+    <div>
+      <a href="/dashboard" class="text-sm text-white hover:text-green-300 mr-4">Dashboard</a>
+      <a href="/mtf" class="text-sm text-white hover:text-green-300 mr-4">MTF</a>
+      <a href="/settings" class="text-sm text-white hover:text-green-300">Settings</a>
+    </div>
+  </header>
+
+  <!-- Main Body -->
+  <div class="flex flex-1 pt-14">
+    
+    <!-- Sidebar -->
+    <aside class="w-64 h-screen bg-[#0f172a] border-r border-gray-700 p-4 fixed top-14 bottom-14 left-0 overflow-y-auto z-40">
+      <nav class="space-y-4">
+        <div>
+          <p class="text-sm uppercase text-gray-400">Real-time Market</p>
+          <a href="/" class="block text-white hover:text-green-400">Live Trading Market</a>
+        </div>
+        <div>
+          <p class="text-sm uppercase text-gray-400 mt-4">Tools</p>
+          <a href="/backtest" class="block hover:text-green-400">Backtest</a>
+          <a href="/logs" class="block hover:text-green-400">Logs</a>
+        </div>
+        <div>
+          <p class="text-sm uppercase text-gray-400 mt-4">Ratios</p>
+          <label class="block"><input type="checkbox" checked> Sharpe Ratio</label>
+          <label class="block"><input type="checkbox" checked> Win/Loss %</label>
+          <label class="block"><input type="checkbox"> Drawdown</label>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="ml-64 flex-1 overflow-y-auto px-6 py-6 pb-20">
+      {% block content %}
+      <!-- Your dynamic content goes here -->
+      {% endblock %}
+    </main>
+  </div>
+
+  <!-- Footer -->
+  <footer class="fixed italic bottom-0 left-0 right-0 h-10 bg-gray-800 border-t border-gray-700 flex items-center justify-center text-sm text-gray-400 z-40">
+    © 2025 Quant Terminal. Designed by Sameer Kulkarni & Nirav Gohil.
+  </footer>
+
 </body>
 </html>

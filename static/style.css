@@ -1,7 +1,10 @@
 body {
     background-color: #1e1e1e;
     color: white;
-    font-family: monospace;
+    font-family: "Libertinus Math", system-ui;
+    font-weight: 400;
+    font-style: normal;
+    margin-top: 80px;
 }
 .navbar {
     background-color: #121212;
@@ -19,4 +22,16 @@ li {
   margin-bottom: 30px;
   border-radius: 10px;
   border: 1px solid #333;
+}
+select, button {
+    padding: 8px 12px;
+    margin-top: 10px;
+}
+.signal-box {
+    margin-top: 20px;
+    display: inline-block;
+    padding: 20px;
+    border-radius: 8px;
+    font-size: 22px;
+    color: black;
 }

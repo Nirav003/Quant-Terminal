@@ -1,6 +1,20 @@
 {% extends "layout.html" %}
 {% block content %}
 
+<!-- 📊 BTC Summary Section
+          <div class="">
+            <p class="text-sm uppercase text-gray-400 mt-4">BTC Summary</p>
+            <ul>
+              <li class="block hover:text-green-400">Volatility (7D): {{ summary.volatility }}</li>
+              <li class="block hover:text-green-400">Sharpe Ratio: {{ summary.sharpe }}</li>
+              <li class="block hover:text-green-400">Latest Return (%): {{ summary.return }}%</li>
+              <li class="block hover:text-green-400">Volume: {{ "{:,}".format(summary.volume) }}</li>
+              <li class="block hover:text-green-400">Trend (1m/5m/15m): {{ summary.trend_1m }}, {{ summary.trend_5m }}, {{ summary.trend_15m }}</li>
+              <li class="block hover:text-green-400">RSI (14d): {{ summary.rsi }}</li>
+              <li class="block hover:text-green-400">MACD: {{ summary.macd }} | <strong>Signal:</strong> {{ summary.macd_signal }}</li>
+            </ul>
+          </div> -->
+
 <!-- ✅ TradingView Advanced Chart Widget -->
 {% if symbol %}
 <div class="section">
@@ -12,58 +26,76 @@
   <script type="text/javascript">
     new TradingView.widget({
       autosize: true,
-      symbol: "{{ symbol }}",
+      symbol: "{{ symbol | default('BINANCE:BTCUSDT') }}",
       interval: "D",
       timezone: "Etc/UTC",
       theme: "dark",
       style: "1",
       locale: "en",
       container_id: "tv_chart_container",
+      "backgroundColor": "rgba(0, 0, 0, 1)",
+      "gridColor": "rgba(46, 46, 46, 0.06)",
       enable_publishing: false,
       allow_symbol_change: true,
       hide_side_toolbar: false,
       withdateranges: true,
       details: true,
-      hotlist: true,
+      hotlist: false,
       calendar: true
     });
   </script>
 </div>
 {% else %}
-  <h2>📈 No symbol selected</h2>
+<h2>📈 No symbol selected</h2>
 {% endif %}
 
 <!-- ⚠️ Error Section -->
 {% if error %}
-  <div class="section">
-    <p style="color: red; font-weight: bold;">⚠️ {{ error }}</p>
-  </div>
-{% endif %}
-
-<!-- 📊 BTC Summary Section -->
-{% if summary %}
-  <div class="section">
-    <h3>📊 BTC Summary</h3>
-    <ul>
-      <li><strong>Volatility (7D):</strong> {{ summary.volatility }}</li>
-      <li><strong>Sharpe Ratio:</strong> {{ summary.sharpe }}</li>
-      <li><strong>Latest Return (%):</strong> {{ summary.return }}%</li>
-      <li><strong>Volume:</strong> {{ "{:,}".format(summary.volume) }}</li>
-      <li><strong>Trend (1m/5m/15m):</strong> {{ summary.trend_1m }}, {{ summary.trend_5m }}, {{ summary.trend_15m }}</li>
-      <li><strong>RSI (14d):</strong> {{ summary.rsi }}</li>
-      <li><strong>MACD:</strong> {{ summary.macd }} | <strong>Signal:</strong> {{ summary.macd_signal }}</li>
-    </ul>
-  </div>
-{% else %}
-  <p>📉 No summary data available.</p>
+<div class="section">
+  <p style="color: red; font-weight: bold;">⚠️ {{ error }}</p>
+</div>
 {% endif %}
 
 <!-- 📈 Price Chart Section -->
 {% if chart %}
-  <div class="section">
-    <h3>📈 BTC Technical Price Chart</h3>
-    <div>{{ chart | safe }}</div>
+<div class="section">
+  <h3>📈 {{ symbol }} Market Chart</h3>
+  <div class="tradingview-widget-container" style="height:600px; width:100%">
+    <div id="tv_chart_container_2" style="height:100%; width:100%"></div>
   </div>
+  <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+  <script type="text/javascript">
+    new TradingView.widget({
+      "autosize": true,
+      "symbol": "{{ symbol | default('BINANCE:BTCUSDT') }}",
+      "interval": "5",
+      "timezone": "America/New_York",
+      "theme": "dark",
+      "style": "2",
+      "locale": "en",
+      "allow_symbol_change": true,
+      "backgroundColor": "rgba(0, 0, 0, 1)",
+      "gridColor": "rgba(46, 46, 46, 0.06)",
+      "save_image": true,
+      "calendar": false,
+      "details": false,
+      "hide_side_toolbar": true,
+      "hide_top_toolbar": false,
+      "hide_legend": false,
+      "hide_volume": false,
+      "hotlist": false,
+      "withdateranges": false,
+      "compareSymbols": [],
+      "studies": [
+        "STD;Stochastic_RSI",
+        "STD;MACD"
+      ],
+      "container_id": "tv_chart_container_2"
+    });
+  </script>
+</div>
+<!-- TradingView Widget END -->
+
 {% else %}
   <p>📉 No chart data available.</p>
 {% endif %}

@@ -1,0 +1,11 @@
+CREATE TABLE btc_usd (
+    Date TEXT PRIMARY KEY,
+    Open REAL,
+    High REAL,
+    Low REAL,
+    Close REAL,
+    "Adj Close" REAL,
+    Volume INTEGER,
+    "Return (%)" REAL,
+    "Log Return" REAL
+);

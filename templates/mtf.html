@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="max-w-2xl mx-auto mt-10 p-6 bg-gray-900 rounded-xl shadow-lg text-white">
+  <h2 class="text-3xl font-semibold mb-6 text-center text-green-300">📈 BTC/USD Trend Signal</h2>
+
+  <form method="POST" class="space-y-4">
+    <label for="timeframe" class="block text-sm text-gray-300">Select Timeframe:</label>
+    <select name="timeframe" id="timeframe"
+            class="w-full bg-gray-800 border border-gray-600 rounded px-4 py-2 text-green-200 focus:outline-none focus:ring-2 focus:ring-green-500">
+      {% for tf, val in timeframes.items() %}
+        <option value="{{ tf }}" {% if tf == selected_tf %}selected{% endif %}>{{ tf }}</option>
+      {% endfor %}
+    </select>
+
+    <button type="submit"
+            class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded transition duration-300">
+      Check Signal
+    </button>
+  </form>
+
+  <div class="rounded-lg px-6 py-4 mt-6 font-bold text-xl text-center shadow-md transition-all duration-500 ease-in-out"
+     style="background-color: {{ color }};">
+    {{ signal }}
+    </div>
+
+</div>
+
+{% endblock %}
