@@ -6,21 +6,24 @@ import requests
 from db import query_db
 import yfinance as yf
 import numpy as np
+import time
 
 app = Flask(__name__)
 
-# Parameters
-symbol = "TSLA"
-length = 70
-mult = 1.2
+COINS = {
+    "bitcoin": "BTC",
+    "ethereum": "ETH",
+    "dogecoin": "DOGE",
+    "litecoin": "LTC",
+    "solana": "SOL",
+    "pepe": "PEPE",
+    "binancecoin": "BNB"
+}
 
-# Timeframe options
-timeframes = {
-    "5m": "5m",
-    "15m": "15m",
-    "1h": "60m",
-    "4h": "240m",
-    "1d": "1d"
+FOREX = {
+    "eur": "EUR",
+    "jpy": "JPY",
+    "usd": "USD"
 }
 
 # Helper: Get BTC news
@@ -114,62 +117,26 @@ def index():
     chart_html = generate_price_chart(btc_df, chart_type="Line")
     news = get_btc_news_from_wikipedia()
 
-    return render_template("index.html", chart=chart_html, summary=summary, news=news, symbol=symbol)
-
-# ZLEMA function
-def zlema(df, length):
-    lag = int((length - 1) / 2)
-    price_adj = df['Close'] + (df['Close'] - df['Close'].shift(lag))
-    return price_adj.ewm(span=length).mean()
-
-# ATR function
-def atr(df, length):
-    hl = df['High'] - df['Low']
-    hc = abs(df['High'] - df['Close'].shift())
-    lc = abs(df['Low'] - df['Close'].shift())
-    tr = pd.concat([hl, hc, lc], axis=1).max(axis=1)
-    return tr.rolling(length).mean()
-
-# Trend logic
-def get_trend(df):
-    z = zlema(df, length)
-    v = atr(df, length) * mult
-    if len(z) < length or len(v) < length:
-        return "Insufficient data"
-    latest_close = df['Close'].iloc[-1]
-    latest_z = z.iloc[-1]
-    latest_v = v.iloc[-1]
-    if latest_close > latest_z + latest_v:
-        return "Bullish"
-    elif latest_close < latest_z - latest_v:
-        return "Bearish"
-    else:
-        return "Neutral"
-
-@app.route("/mtf", methods=["GET", "POST"])
-def mtf():
-    selected_tf = request.form.get("timeframe", "15m")
-    interval = timeframes[selected_tf]
-
     try:
-        df = yf.download(tickers=symbol, period="7d", interval=interval, progress=False)
-        if len(df) >= length * 2:
-            signal = get_trend(df)
-        else:
-            signal = "Insufficient data"
-            err = "else block"
-    except:
-        signal = "Error"
+        coin_ids = ",".join(COINS.keys())
+        forex_ids = ",".join(FOREX.keys())
+        url = f"https://api.coingecko.com/api/v3/simple/price?ids={coin_ids}&vs_currencies={forex_ids}"
+        res = requests.get(url)
+        res.raise_for_status()
+        prices = res.json()
 
-    color = {
-        "Bullish": "#00ffbb",
-        "Bearish": "#ff1100",
-        "Neutral": "#cccccc",
-        "Insufficient data": "#666666",
-        "Error": "#999999"
-    }.get(signal, "#ffffff")
+        # Build the ticker text
+        ticker_items = []
+        for coin_id, symbol in COINS.items():
+            price = prices.get(coin_id, {}).get('usd', 'N/A')
+            ticker_items.append(f"{symbol}/USD: ${price:,}")
 
-    return render_template("mtf.html", signal=signal, err=err, color=color, selected_tf=selected_tf, timeframes=timeframes)
+        ticker_text = "   •   ".join(ticker_items)
+
+    except Exception as e:
+        ticker_text = f"Error fetching prices: {e}"
+
+    return render_template("index.html", chart=chart_html, summary=summary, news=news, symbol=symbol, ticker_text=ticker_text )
 
 if __name__ == "__main__":
     app.run(debug=True)

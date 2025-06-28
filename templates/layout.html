@@ -12,43 +12,28 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="flex flex-col h-screen overflow-y-auto">
-
-  <!-- Navbar -->
-  <header class="fixed top-0 left-0 right-0 h-14 bg-gray-800 border-b border-gray-700 z-50 flex items-center justify-between px-6">
-    <h1 class="text-xl font-bold text-green-400 font-mono">Quant Terminal</h1>
-    <div>
-      <a href="/dashboard" class="text-sm text-white hover:text-green-300 mr-4">Dashboard</a>
-      <a href="/mtf" class="text-sm text-white hover:text-green-300 mr-4">MTF</a>
-      <a href="/settings" class="text-sm text-white hover:text-green-300">Settings</a>
-    </div>
-  </header>
-
+  
   <!-- Main Body -->
-  <div class="flex flex-1 pt-14">
+  <div class="flex flex-1">
     
     <!-- Sidebar -->
-    <aside class="w-64 h-screen bg-[#0f172a] border-r border-gray-700 p-4 fixed top-14 bottom-14 left-0 overflow-y-auto z-40">
+    <aside class="w-64 h-screen bg-[#1e1e1e] border-r border-gray-700 p-4 fixed top-0 bottom-14 left-0 overflow-y-auto z-40">
       <nav class="space-y-4">
+        <h1 class="text-xl font-bold text-yellow-400 font-mono">Quant Terminal</h1>
         <div>
-          <p class="text-sm uppercase text-gray-400">Real-time Market</p>
-          <a href="/" class="block text-white hover:text-green-400">Live Trading Market</a>
+          <p class="text-sm uppercase text-yellow-400 mb-1">Real-time Market</p>
+          <a href="/" class="block text-white hover:text-yellow-400">Live Trading Market</a>
         </div>
         <div>
-          <p class="text-sm uppercase text-gray-400 mt-4">Tools</p>
-          <a href="/backtest" class="block hover:text-green-400">Backtest</a>
-          <a href="/logs" class="block hover:text-green-400">Logs</a>
-        </div>
-        <div>
-          <p class="text-sm uppercase text-gray-400 mt-4">Ratios</p>
-          <label class="block"><input type="checkbox" checked> Sharpe Ratio</label>
-          <label class="block"><input type="checkbox" checked> Win/Loss %</label>
-          <label class="block"><input type="checkbox"> Drawdown</label>
+          <p class="text-sm uppercase text-yellow-400 mt-4 mb-1">Tools</p>
+          <a href="/backtest" class="block hover:text-yellow-400">Backtest</a>
+          <a href="/logs" class="block hover:text-yellow-400">Logs</a>
         </div>
       </nav>
     </aside>
 
     <!-- Main Content -->
-    <main class="ml-64 flex-1 overflow-y-auto px-6 py-6 pb-20">
+    <main class="ml-64 flex-1 overflow-y-auto px-6 py-6 pb-20 bg-[#1e1e1e]">
       {% block content %}
       <!-- Your dynamic content goes here -->
       {% endblock %}

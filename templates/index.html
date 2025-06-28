@@ -15,6 +15,15 @@
             </ul>
           </div> -->
 
+  <marquee scrollamount="12" class="text-sm text-yellow-400 pb-2">
+    <span class="gap-2">
+      <!-- <p>  
+        XAUUSD:  &nbsp;&nbsp;  BTCUSD &nbsp;&nbsp;  ETHUSD &nbsp;&nbsp;  SOL &nbsp;&nbsp;  LTCUSD &nbsp;&nbsp;  PEPE &nbsp;&nbsp;  DOGE &nbsp;&nbsp;  BNB &nbsp;&nbsp;  EURJPY &nbsp;&nbsp;  EURUSD
+      </p> -->
+      <p class="text-white">{{ticker_text}}</p>
+    </span>
+  </marquee>
+
 <!-- ✅ TradingView Advanced Chart Widget -->
 {% if symbol %}
 <div class="section">
@@ -25,15 +34,15 @@
   <script type="text/javascript">
     new TradingView.widget({
       autosize: true,
-      symbol: "{{ symbol | default('BINANCE:BTCUSDT') }}",
-      interval: "D",
+      symbol: "{{ symbol | default('BINANCE:BTCUSD') }}",
+      interval: "5",
       timezone: "Etc/UTC",
       theme: "dark",
       style: "1",
       locale: "en",
       container_id: "tv_chart_container",
-      "backgroundColor": "rgba(0, 0, 0, 1)",
-      "gridColor": "rgba(46, 46, 46, 0.06)",
+      "backgroundColor": "rgba(1, 1, 1, 1)",
+      "gridColor": "rgba(100, 255, 218, 0.05)",
       enable_publishing: false,
       allow_symbol_change: true,
       hide_side_toolbar: false,
@@ -58,7 +67,6 @@
 <!-- 📈 Price Chart Section -->
 {% if chart %}
 <div class="section">
-  <h3>📈 {{ symbol }} Market Chart</h3>
   <div class="tradingview-widget-container" style="height:600px; width:100%">
     <div id="tv_chart_container_2" style="height:100%; width:100%"></div>
   </div>
@@ -66,14 +74,14 @@
   <script type="text/javascript">
     new TradingView.widget({
       "autosize": true,
-      "symbol": "{{ symbol | default('BINANCE:BTCUSDT') }}",
+      "symbol": "{{ symbol | default('BINANCE:BTCUSD') }}",
       "interval": "5",
       "timezone": "America/New_York",
       "theme": "dark",
       "style": "2",
       "locale": "en",
       "allow_symbol_change": true,
-      "backgroundColor": "rgba(10, 25, 47, 1)",
+      "backgroundColor": "rgba(1, 1, 1, 1)",
       "gridColor": "rgba(100, 255, 218, 0.05)",
       "save_image": true,
       "calendar": false,

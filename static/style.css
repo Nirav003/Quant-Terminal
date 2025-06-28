@@ -35,3 +35,9 @@ select, button {
     font-size: 22px;
     color: black;
 }
+@keyframes 
+blink{
+    0%{color:white}
+    50%{color:red}
+    100%{color:green}
+}
