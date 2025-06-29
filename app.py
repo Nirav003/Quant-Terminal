@@ -7,6 +7,7 @@ from db import query_db
 import yfinance as yf
 import numpy as np
 import time
+import re
 
 app = Flask(__name__)
 
@@ -26,32 +27,23 @@ FOREX = {
     "usd": "USD"
 }
 
-# Helper: Get BTC news
-def get_btc_news_from_wikipedia(n=5):
-    url = "https://en.wikipedia.org/wiki/Portal:Current_events"
-    response = requests.get(url)
-    if response.status_code != 200:
-        return ["⚠️ Failed to fetch news. Try again later."]
-    html = response.text
-    items = html.split("<li>")
-    btc_news = []
-    for item in items[1:]:
-        text = item.split("</li>")[0]
-        while '<' in text and '>' in text:
-            start = text.find('<')
-            end = text.find('>', start)
-            if start != -1 and end != -1:
-                text = text[:start] + text[end + 1:]
-            else:
-                break
-        clean_text = text.strip()
-        if any(k in clean_text.lower() for k in ['bitcoin', 'btc', 'crypto']):
-            btc_news.append(clean_text)
-        if len(btc_news) >= n:
-            break
-    return btc_news or ["No recent BTC news found."]
+def fetch_crypto_news():
+    try:
+        url = "https://en.wikipedia.org/wiki/Portal:Cryptocurrency"
+        res = requests.get(url, timeout=5)
+        res.raise_for_status()
+        html = res.text
 
-# Helper: Chart rendering
+        # Match article headlines inside <a> tags with class name that includes "card-title"
+        headlines = re.findall(r'<a[^>]+class="[^"]*card-title[^"]*"[^>]*>(.*?)</a>', html)
+        headlines = [re.sub("<[^<]+?>", "", h).strip() for h in headlines if h.strip()]
+        
+        top_headlines = headlines[:5]
+        return "   •   ".join(top_headlines) if top_headlines else "No headlines found."
+    
+    except Exception as e:
+        return f"⚠️ Error fetching news: {e}"
+# ✅ Chart rendering
 def generate_price_chart(btc_df, chart_type):
     if chart_type == "Line":
         fig = px.line(btc_df, x="Date", y="Close BTC-USD", title="BTC/USD Close Price", template="plotly_dark")
@@ -68,16 +60,25 @@ def generate_price_chart(btc_df, chart_type):
         fig.add_trace(go.Scatter(x=btc_df["Date"], y=btc_df["SMA 50"], mode='lines', name='SMA 50', line=dict(color='orange')))
         fig.update_layout(xaxis_rangeslider_visible=False)
     return fig.to_html(full_html=False)
+@app.route("/automate")
+def automate():
+    return render_template("automate.html")
 
-# --- Main Route ---
+@app.route("/logs")
+def logs():
+    return render_template("logs.html")
+
+@app.route("/settings")  # Replace with your actual third template if different
+def settings():
+    return render_template("settings.html")
+# ✅ Main route
 @app.route("/", methods=["GET"])
 def index():
     symbol = request.args.get("symbol", default="BINANCE:BTCUSDT")
-
     btc_df = query_db("SELECT * FROM btc_usd")
 
     if isinstance(btc_df, str) or btc_df is None or btc_df.empty:
-        return render_template("index.html", error="⚠️ Failed to load BTC data.", summary=None, news=[], chart=None, symbol=symbol)
+        return render_template("index.html", error="⚠️ Failed to load BTC data.", summary=None, chart=None, symbol=symbol)
 
     # Technical indicators
     btc_df["EMA 20"] = btc_df["Close BTC-USD"].ewm(span=20).mean()
@@ -112,10 +113,7 @@ def index():
         "macd_signal": round(btc_df["MACD Signal"].iloc[-1], 2),
     }
 
-    symbol = request.args.get("symbol", default="BINANCE:BTCUSDT")
-
     chart_html = generate_price_chart(btc_df, chart_type="Line")
-    news = get_btc_news_from_wikipedia()
 
     try:
         coin_ids = ",".join(COINS.keys())
@@ -125,18 +123,39 @@ def index():
         res.raise_for_status()
         prices = res.json()
 
-        # Build the ticker text
         ticker_items = []
         for coin_id, symbol in COINS.items():
             price = prices.get(coin_id, {}).get('usd', 'N/A')
             ticker_items.append(f"{symbol}/USD: ${price:,}")
-
         ticker_text = "   •   ".join(ticker_items)
 
     except Exception as e:
         ticker_text = f"Error fetching prices: {e}"
 
-    return render_template("index.html", chart=chart_html, summary=summary, news=news, symbol=symbol, ticker_text=ticker_text )
+    # News from CoinGecko (Status Updates)
+    try:
+        news_url = "https://api.coingecko.com/api/v1/status_updates"
+        news_res = requests.get(news_url)
+        news_res.raise_for_status()
+        news_data = news_res.json()
 
+        # Extract top 5 news titles
+        news_titles = [item["title"] for item in news_data.get("status_updates", [])[:5]]
+        news_marquee_text = "   •   ".join(news_titles)
+
+    except Exception as e:
+        news_marquee_text = f"Error fetching news: {e}"
+
+
+    return render_template(
+    "index.html",
+    chart=chart_html,
+    summary=summary,
+    symbol=symbol,
+    ticker_text=ticker_text,
+    news_marquee_text=news_marquee_text
+)
+    
+# ✅ Run app
 if __name__ == "__main__":
     app.run(debug=True)

@@ -28,8 +28,41 @@
           <p class="text-sm uppercase text-yellow-400 mt-4 mb-1">Tools</p>
           <a href="/backtest" class="block hover:text-yellow-400">Backtest</a>
           <a href="/logs" class="block hover:text-yellow-400">Logs</a>
+          <a href="/automate" class="block hover:text-yellow-400">Automation</a>
+          <a hre="/settings" class="block hover:text-yellow-400">Settings</a>
+        </div>
+        <div>
+            <div class="bg-gray-900  text-white p-4 rounded-xl shadow-md w-full text-sm">
+    <p class="text-gray-400 uppercase text-xs mb-2">BTC Summary</p>
+    <table class="w-full text-left border-separate border-spacing-y-1">
+    <tr><td class="text-white-300">Volatility (7D):</td><td class="text-yellow-400">{{ summary.volatility }}</td></tr>
+    <tr><td class="text-white-300">Sharpe Ratio:</td><td class="text-yellow-400">{{ summary.sharpe }}</td></tr>
+    <tr><td class="text-white-300">Latest Return (%):</td><td class="text-yellow-400">{{ summary.return }}%</td></tr>
+    <tr><td class="text-white-300">Volume:</td><td class="text-yellow-400">{{ "{:,}".format(summary.volume) }}</td></tr>
+    <tr><td class="text-white-300">Trend (1m):</td>
+        <td class="{% if summary.trend_1m == 'Bullish' %}text-green-400{% elif summary.trend_1m == 'Bearish' %}text-red-400{% else %}text-yellow-400{% endif %}">
+            {{ summary.trend_1m }}
+        </td>
+    </tr>
+    <tr><td class="text-gray-300">Trend (5m):</td>
+        <td class="{% if summary.trend_5m == 'Bullish' %}text-green-400{% elif summary.trend_5m == 'Bearish' %}text-red-400{% else %}text-yellow-400{% endif %}">
+            {{ summary.trend_5m }}
+        </td>
+    </tr>
+    <tr><td class="text-gray-300">Trend (15m):</td>
+        <td class="{% if summary.trend_15m == 'Bullish' %}text-green-400{% elif summary.trend_15m == 'Bearish' %}text-red-400{% else %}text-yellow-400{% endif %}">
+            {{ summary.trend_15m }}
+        </td>
+    </tr>
+    <tr><td class="text-gray-300">RSI (14D):</td><td class="text-yellow-400">{{ summary.rsi }}</td></tr>
+    <tr><td class="text-gray-300">MACD:</td><td class="text-yellow-400">{{ summary.macd }}</td></tr>
+    <tr><td class="text-gray-300">Signal:</td><td class="text-yellow-400">{{ summary.macd_signal }}</td></tr>
+  </table>
+  </div>
+
         </div>
       </nav>
+      
     </aside>
 
     <!-- Main Content -->
