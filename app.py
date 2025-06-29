@@ -27,54 +27,8 @@ FOREX = {
     "usd": "USD"
 }
 
-def fetch_crypto_news():
-    try:
-        url = "https://en.wikipedia.org/wiki/Portal:Cryptocurrency"
-        res = requests.get(url, timeout=5)
-        res.raise_for_status()
-        html = res.text
-
-        # Match article headlines inside <a> tags with class name that includes "card-title"
-        headlines = re.findall(r'<a[^>]+class="[^"]*card-title[^"]*"[^>]*>(.*?)</a>', html)
-        headlines = [re.sub("<[^<]+?>", "", h).strip() for h in headlines if h.strip()]
-        
-        top_headlines = headlines[:5]
-        return "   •   ".join(top_headlines) if top_headlines else "No headlines found."
-    
-    except Exception as e:
-        return f"⚠️ Error fetching news: {e}"
-# ✅ Chart rendering
-def generate_price_chart(btc_df, chart_type):
-    if chart_type == "Line":
-        fig = px.line(btc_df, x="Date", y="Close BTC-USD", title="BTC/USD Close Price", template="plotly_dark")
-        fig.add_scatter(x=btc_df["Date"], y=btc_df["EMA 20"], mode="lines", name="EMA 20", line=dict(color="cyan"))
-        fig.add_scatter(x=btc_df["Date"], y=btc_df["SMA 50"], mode="lines", name="SMA 50", line=dict(color="orange"))
-    else:
-        fig = go.Figure(data=[go.Candlestick(
-            x=btc_df["Date"],
-            open=btc_df["Open BTC-USD"], high=btc_df["High BTC-USD"],
-            low=btc_df["Low BTC-USD"], close=btc_df["Close BTC-USD"],
-            increasing_line_color='green', decreasing_line_color='red'
-        )])
-        fig.add_trace(go.Scatter(x=btc_df["Date"], y=btc_df["EMA 20"], mode='lines', name='EMA 20', line=dict(color='cyan')))
-        fig.add_trace(go.Scatter(x=btc_df["Date"], y=btc_df["SMA 50"], mode='lines', name='SMA 50', line=dict(color='orange')))
-        fig.update_layout(xaxis_rangeslider_visible=False)
-    return fig.to_html(full_html=False)
-@app.route("/automate")
-def automate():
-    return render_template("automate.html")
-
-@app.route("/logs")
-def logs():
-    return render_template("logs.html")
-
-@app.route("/settings")  # Replace with your actual third template if different
-def settings():
-    return render_template("settings.html")
-# ✅ Main route
-@app.route("/", methods=["GET"])
-def index():
-    symbol = request.args.get("symbol", default="BINANCE:BTCUSDT")
+# ✅ Summary
+def summary():
     btc_df = query_db("SELECT * FROM btc_usd")
 
     if isinstance(btc_df, str) or btc_df is None or btc_df.empty:
@@ -113,7 +67,67 @@ def index():
         "macd_signal": round(btc_df["MACD Signal"].iloc[-1], 2),
     }
 
-    chart_html = generate_price_chart(btc_df, chart_type="Line")
+    return summary
+
+def fetch_crypto_news():
+    try:
+        url = "https://en.wikipedia.org/wiki/Portal:Cryptocurrency"
+        res = requests.get(url, timeout=5)
+        res.raise_for_status()
+        html = res.text
+
+        # Match article headlines inside <a> tags with class name that includes "card-title"
+        headlines = re.findall(r'<a[^>]+class="[^"]*card-title[^"]*"[^>]*>(.*?)</a>', html)
+        headlines = [re.sub("<[^<]+?>", "", h).strip() for h in headlines if h.strip()]
+        
+        top_headlines = headlines[:5]
+        return "   •   ".join(top_headlines) if top_headlines else "No headlines found."
+    
+    except Exception as e:
+        return f"⚠️ Error fetching news: {e}"
+# ✅ Chart rendering
+# def generate_price_chart(btc_df, chart_type):
+#     if chart_type == "Line":
+#         fig = px.line(btc_df, x="Date", y="Close BTC-USD", title="BTC/USD Close Price", template="plotly_dark")
+#         fig.add_scatter(x=btc_df["Date"], y=btc_df["EMA 20"], mode="lines", name="EMA 20", line=dict(color="cyan"))
+#         fig.add_scatter(x=btc_df["Date"], y=btc_df["SMA 50"], mode="lines", name="SMA 50", line=dict(color="orange"))
+#     else:
+#         fig = go.Figure(data=[go.Candlestick(
+#             x=btc_df["Date"],
+#             open=btc_df["Open BTC-USD"], high=btc_df["High BTC-USD"],
+#             low=btc_df["Low BTC-USD"], close=btc_df["Close BTC-USD"],
+#             increasing_line_color='green', decreasing_line_color='red'
+#         )])
+#         fig.add_trace(go.Scatter(x=btc_df["Date"], y=btc_df["EMA 20"], mode='lines', name='EMA 20', line=dict(color='cyan')))
+#         fig.add_trace(go.Scatter(x=btc_df["Date"], y=btc_df["SMA 50"], mode='lines', name='SMA 50', line=dict(color='orange')))
+#         fig.update_layout(xaxis_rangeslider_visible=False)
+#     return fig.to_html(full_html=False)
+
+@app.route("/automate")
+def automate():
+    return render_template("automate.html", summary=summary())
+    # Add MTF code here
+
+@app.route("/backtest")
+def backtest():
+    return render_template("backtest.html", summary=summary())
+    # Create a backtesting page with MTF code here
+
+@app.route("/logs")
+def logs():
+    return render_template("logs.html", summary=summary())
+    # Create a logs with SQL query here
+
+@app.route("/settings")  # Replace with your actual third template if different
+def settings():
+    return render_template("settings.html", summary=summary())
+    # 
+
+# ✅ Main route
+@app.route("/", methods=["GET"])
+def index():
+    symbol = request.args.get("symbol", default="BINANCE:BTCUSDT")
+
 
     try:
         coin_ids = ",".join(COINS.keys())
@@ -149,8 +163,7 @@ def index():
 
     return render_template(
     "index.html",
-    chart=chart_html,
-    summary=summary,
+    summary=summary(),
     symbol=symbol,
     ticker_text=ticker_text,
     news_marquee_text=news_marquee_text
