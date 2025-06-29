@@ -31,9 +31,6 @@ FOREX = {
 def summary():
     btc_df = query_db("SELECT * FROM btc_usd")
 
-    if isinstance(btc_df, str) or btc_df is None or btc_df.empty:
-        return render_template("index.html", error="⚠️ Failed to load BTC data.", summary=None, chart=None, symbol=symbol)
-
     # Technical indicators
     btc_df["EMA 20"] = btc_df["Close BTC-USD"].ewm(span=20).mean()
     btc_df["SMA 50"] = btc_df["Close BTC-USD"].rolling(window=50).mean()
@@ -85,23 +82,6 @@ def fetch_crypto_news():
     
     except Exception as e:
         return f"⚠️ Error fetching news: {e}"
-# ✅ Chart rendering
-# def generate_price_chart(btc_df, chart_type):
-#     if chart_type == "Line":
-#         fig = px.line(btc_df, x="Date", y="Close BTC-USD", title="BTC/USD Close Price", template="plotly_dark")
-#         fig.add_scatter(x=btc_df["Date"], y=btc_df["EMA 20"], mode="lines", name="EMA 20", line=dict(color="cyan"))
-#         fig.add_scatter(x=btc_df["Date"], y=btc_df["SMA 50"], mode="lines", name="SMA 50", line=dict(color="orange"))
-#     else:
-#         fig = go.Figure(data=[go.Candlestick(
-#             x=btc_df["Date"],
-#             open=btc_df["Open BTC-USD"], high=btc_df["High BTC-USD"],
-#             low=btc_df["Low BTC-USD"], close=btc_df["Close BTC-USD"],
-#             increasing_line_color='green', decreasing_line_color='red'
-#         )])
-#         fig.add_trace(go.Scatter(x=btc_df["Date"], y=btc_df["EMA 20"], mode='lines', name='EMA 20', line=dict(color='cyan')))
-#         fig.add_trace(go.Scatter(x=btc_df["Date"], y=btc_df["SMA 50"], mode='lines', name='SMA 50', line=dict(color='orange')))
-#         fig.update_layout(xaxis_rangeslider_visible=False)
-#     return fig.to_html(full_html=False)
 
 @app.route("/automate")
 def automate():
@@ -121,6 +101,11 @@ def logs():
 @app.route("/settings")  # Replace with your actual third template if different
 def settings():
     return render_template("settings.html", summary=summary())
+    # 
+
+@app.route("/analysis")
+def analysis():
+    return render_template("analysis.html", summary=summary())
     # 
 
 # ✅ Main route
