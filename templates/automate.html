@@ -1,25 +1,140 @@
 {% extends "layout.html" %}
 {% block content %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Dog Meme</title>
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      background-color: #000;
+<body class="p-4">
+
+<div class="flex flex-col border border-white p-4 max-w-[90%] mx-auto">
+  <h2 class="text-sm font-bold mb-4 text-center text-yellow-400">SIGNAL - {Buy/Sell}</h2>
+
+  <div class="flex flex-col lg:flex-row justify-center gap-4 pt-2 border-t border-white">
+
+    <!-- Column 1: Commodities -->
+    <div class="border border-white p-2 w-full lg:w-[22%]">
+      <details open>
+        <summary class="text-md font-bold text-yellow-400 cursor-pointer">Commodities</summary>
+        <ul class="space-y-1 text-sm max-h-[149px] overflow-y-auto mt-2 pr-1 list-none" id="commodity-list">
+          <li><button onclick="updateContent('XAUUSD')" class="hover:text-yellow-400">XAUUSD</button></li>
+          <li><button onclick="updateContent('BTCUSD')" class="hover:text-yellow-400">BTCUSD</button></li>
+          <li><button onclick="updateContent('ETHUSD')" class="hover:text-yellow-400">ETHUSD</button></li>
+          <li><button onclick="updateContent('XAUUSD')" class="hover:text-yellow-400">XAUUSD</button></li>
+          <li><button onclick="updateContent('BTCUSD')" class="hover:text-yellow-400">BTCUSD</button></li>
+          <li><button onclick="updateContent('ETHUSD')" class="hover:text-yellow-400">ETHUSD</button></li>
+          <li><button onclick="updateContent('XAUUSD')" class="hover:text-yellow-400">XAUUSD</button></li>
+          <li><button onclick="updateContent('BTCUSD')" class="hover:text-yellow-400">BTCUSD</button></li>
+          <li><button onclick="updateContent('ETHUSD')" class="hover:text-yellow-400">ETHUSD</button></li>
+          <li><button onclick="updateContent('XAUUSD')" class="hover:text-yellow-400">XAUUSD</button></li>
+          <li><button onclick="updateContent('BTCUSD')" class="hover:text-yellow-400">BTCUSD</button></li>
+          <li><button onclick="updateContent('ETHUSD')" class="hover:text-yellow-400">ETHUSD</button></li>
+        </ul>
+      </details>
+    </div>
+
+    <!-- Column 2: Values -->
+    <div class="border border-white p-2 w-full lg:w-[22%]">
+      <h2 class="text-md font-bold mb-2 text-yellow-400">Values</h2>
+      <div class="mb-3">
+        <p class="text-xs mb-1">Entry</p>
+        <div class="flex items-center space-x-2">
+          <span id="entry" class="text-sm">--</span>
+          <button class="bg-gray-700 px-2 py-1 text-xs rounded" onclick="copyText('entry')">Copy</button>
+        </div>
+      </div>
+      <div class="mb-3">
+        <p class="text-xs mb-1">Stoploss</p>
+        <div class="flex items-center space-x-2">
+          <span id="stoploss" class="text-sm">--</span>
+          <button class="bg-gray-700 px-2 py-1 text-xs rounded" onclick="copyText('stoploss')">Copy</button>
+        </div>
+      </div>
+      <div>
+        <p class="text-xs mb-1">Take Profit</p>
+        <div class="flex items-center space-x-2">
+          <span id="takeprofit" class="text-sm">--</span>
+          <button class="bg-gray-700 px-2 py-1 text-xs rounded" onclick="copyText('takeprofit')">Copy</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Column 3: Stats -->
+    <div class="border border-white p-2 w-full lg:w-[20%]">
+      <h2 class="text-md font-bold mb-2 text-yellow-400">Stats</h2>
+      <ul class="text-sm space-y-2" id="stats">
+        <li>--</li>
+        <li>--</li>
+        <li>--</li>
+      </ul>
+    </div>
+
+    <!-- Column 4: PnL -->
+    <div class="border border-white p-2 w-full lg:w-[22%]">
+      <div id="symbol-name" class="text-sm font-bold text-yellow-400">--</div>
+      <details open>
+        <summary class="cursor-pointer">USD/INR</summary>
+        <ul id="pnl-list" class="pl-4 mt-1 overflow-y-auto max-h-32 w-full text-sm">
+          <li class="text-gray-400">Select commodity</li>
+        </ul>
+      </details>
+    </div>
+
+  </div>
+
+  <!-- Automate Button -->
+  <div class="mt-6 flex justify-center">
+    <button class="border border-white px-6 py-2 text-sm hover:bg-gray-800">AUTOMATE</button>
+  </div>
+</div>
+
+<!-- JavaScript for updating values -->
+<script>
+  const data = {
+    XAUUSD: {
+      entry: "3324.22",
+      stoploss: "3322.22",
+      takeprofit: "3328.22",
+      stats: ["1:2 ratio", "25 Pips", "PnL - 20$"],
+      pnl: ["+ $28", "+ $22", "$0", "$0", "- $15", "+ $35"]
+    },
+    BTCUSD: {
+      entry: "63124.00",
+      stoploss: "62900.00",
+      takeprofit: "63600.00",
+      stats: ["1:1.5 ratio", "300 Pips", "PnL - 80$"],
+      pnl: ["+ $50", "- $12", "+ $10", "$0", "- $20", "+ $28"]
+    },
+    ETHUSD: {
+      entry: "3250.00",
+      stoploss: "3225.00",
+      takeprofit: "3300.00",
+      stats: ["1:2.5 ratio", "120 Pips", "PnL - 40$"],
+      pnl: ["+ $12", "+ $18", "$0", "- $5", "- $10", "+ $30"]
     }
-    img {
-      width: 100vw;
-      height: 100vh;
-      object-fit: cover;
-    }
-  </style>
-</head>
-<body>
-  <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcGw5am1zbzdmZGs4dXN5b2ZpeG42ZDIyeG11ZjhpeWVheTh5Mm9vaSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/1iTItUOuJLsbev28/giphy.gif" alt="Dog Meme">
+  };
+
+  function updateContent(symbol) {
+    const d = data[symbol];
+    if (!d) return;
+
+    document.getElementById("entry").textContent = d.entry;
+    document.getElementById("stoploss").textContent = d.stoploss;
+    document.getElementById("takeprofit").textContent = d.takeprofit;
+
+    document.getElementById("stats").innerHTML = d.stats.map(s => `<li>${s}</li>`).join("");
+
+    document.getElementById("symbol-name").textContent = symbol;
+    const pnlList = d.pnl.slice(0, -1).map(val => {
+      const color = val.includes('-') ? 'text-red-400' : 'text-green-300';
+      return `<li class="${color}">${val}</li>`;
+    }).join("") + `
+      <li><hr class="border-dashed border-t my-1 w-[90%]"></li>
+      <li class="font-bold text-green-300 text-right pr-5">${d.pnl.at(-1)}</li>
+    `;
+    document.getElementById("pnl-list").innerHTML = pnlList;
+  }
+
+  function copyText(id) {
+    const text = document.getElementById(id).textContent;
+    navigator.clipboard.writeText(text);
+  }
+</script>
+
 </body>
-</html>
 {% endblock %}

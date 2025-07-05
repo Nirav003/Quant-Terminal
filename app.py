@@ -78,7 +78,8 @@ def fetch_crypto_news():
         headlines = [re.sub("<[^<]+?>", "", h).strip() for h in headlines if h.strip()]
         
         top_headlines = headlines[:5]
-        return "   •   ".join(top_headlines) if top_headlines else "No headlines found."
+        news = "   •   ".join(top_headlines) if top_headlines else "No headlines found."
+        return news
     
     except Exception as e:
         return f"⚠️ Error fetching news: {e}"
@@ -151,7 +152,7 @@ def index():
     summary=summary(),
     symbol=symbol,
     ticker_text=ticker_text,
-    news_marquee_text=news_marquee_text
+    news_marquee_text=fetch_crypto_news()
 )
     
 # ✅ Run app

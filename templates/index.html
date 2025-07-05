@@ -1,31 +1,17 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<!-- 📊 BTC Summary Section
-          <div class="">
-            <p class="text-sm uppercase text-gray-400 mt-4">BTC Summary</p>
-            <ul>
-              <li class="block hover:text-green-400">Volatility (7D): {{ summary.volatility }}</li>
-              <li class="block hover:text-green-400">Sharpe Ratio: {{ summary.sharpe }}</li>
-              <li class="block hover:text-green-400">Latest Return (%): {{ summary.return }}%</li>
-              <li class="block hover:text-green-400">Volume: {{ "{:,}".format(summary.volume) }}</li>
-              <li class="block hover:text-green-400">Trend (1m/5m/15m): {{ summary.trend_1m }}, {{ summary.trend_5m }}, {{ summary.trend_15m }}</li>
-              <li class="block hover:text-green-400">RSI (14d): {{ summary.rsi }}</li>
-              <li class="block hover:text-green-400">MACD: {{ summary.macd }} | <strong>Signal:</strong> {{ summary.macd_signal }}</li>
-            </ul>
-          </div> -->
-  <!-- <marquee scrollamount="8" class="text-sm text-green-300 pt-2">
-    <p class="text-white">{{ news_marquee_text }}</p>
-  </marquee> -->
+  <div class="overflow-hidden whitespace-nowrap text-yellow-400 text-md mb-2 lg:mb-1">
+    <div class="marquee-content animate-marquee">
+      {{news_marquee_text}}
+    </div>
+  </div>
 
-  <marquee scrollamount="8" class="text-sm text-yellow-400 pb-2">
-    <span class="gap-2">
-      <!-- <p>  
-        XAUUSD:  &nbsp;&nbsp;  BTCUSD &nbsp;&nbsp;  ETHUSD &nbsp;&nbsp;  SOL &nbsp;&nbsp;  LTCUSD &nbsp;&nbsp;  PEPE &nbsp;&nbsp;  DOGE &nbsp;&nbsp;  BNB &nbsp;&nbsp;  EURJPY &nbsp;&nbsp;  EURUSD
-      </p> -->
-      <p class="text-white">{{ticker_text}}</p>
-    </span>
-  </marquee>
+  <div class="overflow-hidden whitespace-nowrap text-white text-md mb-3 lg:mb-2">
+    <div class="marquee-content animate-marquee">
+        {{ticker_text}}
+    </div>
+  </div>
 
 <!-- ✅ TradingView Advanced Chart Widget -->
 {% if symbol %}
@@ -50,7 +36,7 @@
       allow_symbol_change: true,
       hide_side_toolbar: false,
       withdateranges: true,
-      details: true,
+      details: false,
       hotlist: false,
       calendar: true
     });
