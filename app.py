@@ -13,7 +13,7 @@ from db import query_db
 app = Flask(__name__)
 
 # ✅ Finance news feed
-RSS_FEED = "https://feeds.finance.yahoo.com/rss/2.0/headline?s=^DJI,^GSPC,^IXIC&region=US&lang=en-US"
+RSS_FEED = "https://www.fxstreet.com/rss/news"
 
 def get_finance_news():
     feed = feedparser.parse(RSS_FEED)
@@ -76,9 +76,12 @@ def summary():
     }
 
 # ✅ Routes
-@app.route("/")
+@app.route("/", methods=["GET", "POST"])
 def index():
-    symbol = request.args.get("symbol", default="BINANCE:BTCUSDT")
+    default_symbol = "BINANCE:BTCUSD"
+
+    # Get selected symbol from form
+    symbol = request.form.get("symbol", default_symbol)
 
     try:
         coin_ids = ",".join(COINS.keys())

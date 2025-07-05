@@ -13,6 +13,18 @@
     </div>
   </div>
 
+ <!-- 🔘 Dropdown Form to select symbol -->
+  <form method="POST" class="mb-4">
+    <label for="symbol" class="block text-yellow-400 font-bold mb-2">Select Symbol:</label>
+    <select name="symbol" id="symbol" class="text-black p-2 rounded">
+      <option value="BINANCE:BTCUSD" {% if symbol == "BINANCE:BTCUSD" %}selected{% endif %}>BTCUSD</option>
+      <option value="BINANCE:ETHUSD" {% if symbol == "BINANCE:ETHUSD" %}selected{% endif %}>ETHUSD</option>
+      <option value="OANDA:XAUUSD" {% if symbol == "OANDA:XAUUSD" %}selected{% endif %}>XAUUSD (Gold)</option>
+      <option value="NASDAQ:TSLA" {% if symbol == "NASDAQ:TSLA" %}selected{% endif %}>Tesla</option>
+    </select>
+    <button type="submit" class="ml-2 bg-yellow-400 text-black px-4 py-1 rounded">Load Chart</button>
+  </form>
+
 <!-- ✅ TradingView Advanced Chart Widget -->
 {% if symbol %}
 <div class="section">
@@ -23,15 +35,15 @@
   <script type="text/javascript">
     new TradingView.widget({
       autosize: true,
-      symbol: "BINANCE:BTCUSD",
+      symbol: "{{ symbol }}",
       interval: "5",
       timezone: "Etc/UTC",
       theme: "dark",
       style: "1",
       locale: "en",
       container_id: "tv_chart_container",
-      "backgroundColor": "rgba(1, 1, 1, 1)",
-      "gridColor": "rgba(100, 255, 218, 0.05)",
+      backgroundColor: "rgba(1, 1, 1, 1)",
+      gridColor: "rgba(100, 255, 218, 0.05)",
       enable_publishing: false,
       allow_symbol_change: true,
       hide_side_toolbar: false,
@@ -62,7 +74,7 @@
   <script type="text/javascript">
     new TradingView.widget({
       "autosize": true,
-      "symbol": "BINANCE:BTCUSD",
+      "symbol": "{{ symbol}}",
       "interval": "5",
       "timezone": "America/New_York",
       "theme": "dark",
