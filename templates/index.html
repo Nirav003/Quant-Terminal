@@ -13,17 +13,20 @@
     </div>
   </div>
 
- <!-- 🔘 Dropdown Form to select symbol -->
-  <form method="POST" class="mb-4">
-    <label for="symbol" class="block text-yellow-400 font-bold mb-2">Select Symbol:</label>
-    <select name="symbol" id="symbol" class="text-black p-2 rounded">
-      <option value="BINANCE:BTCUSD" {% if symbol == "BINANCE:BTCUSD" %}selected{% endif %}>BTCUSD</option>
-      <option value="BINANCE:ETHUSD" {% if symbol == "BINANCE:ETHUSD" %}selected{% endif %}>ETHUSD</option>
-      <option value="OANDA:XAUUSD" {% if symbol == "OANDA:XAUUSD" %}selected{% endif %}>XAUUSD (Gold)</option>
-      <option value="NASDAQ:TSLA" {% if symbol == "NASDAQ:TSLA" %}selected{% endif %}>Tesla</option>
-    </select>
-    <button type="submit" class="ml-2 bg-yellow-400 text-black px-4 py-1 rounded">Load Chart</button>
-  </form>
+<!-- 🔘 Dropdown Form to select symbol -->
+<form method="POST" class="mb-4 w-full">
+  <label for="symbol" class="block text-yellow-400 font-bold mb-2">Select Symbol:</label>
+  <select name="symbol" id="symbol" class="text-black p-2 rounded" onchange="this.form.submit()">
+    <option value="OANDA:XAUUSD" {% if symbol == "OANDA:XAUUSD" %}selected{% endif %}>XAUUSD (Gold)</option>
+    <option value="BINANCE:BTCUSD" {% if symbol == "BINANCE:BTCUSD" %}selected{% endif %}>BTCUSD</option>
+    <option value="BINANCE:ETHUSD" {% if symbol == "BINANCE:ETHUSD" %}selected{% endif %}>ETHUSD</option>
+    <option value="OANDA:EURJPY" {% if symbol == "OANDA:EURJPY" %}selected{% endif %}>EURJPY</option>
+    <option value="TVC:USOIL" {% if symbol == "TVC:USOIL" %}selected{% endif %}>USOIL</option>
+    <option value="BINANCE:SOLUSD" {% if symbol == "BINANCE:SOLUSD" %}selected{% endif %}>SOLANA</option>
+    <option value="OANDA:EURUSD" {% if symbol == "OANDA:EURUSD" %}selected{% endif %}>EURUSD</option>
+  </select>
+</form>
+
 
 <!-- ✅ TradingView Advanced Chart Widget -->
 {% if symbol %}

@@ -9,11 +9,58 @@ import time
 import re
 import feedparser
 from db import query_db
+from difflib import get_close_matches
 
 app = Flask(__name__)
+SYMBOL_MAP = {
+    "xauusd": "OANDA:XAUUSD",
+    "btcusd": "BINANCE:BTCUSD",
+    "ethusd": "BINANCE:ETHUSD",
+    "eurjpy": "OANDA:EURJPY",
+    "usoil": "TVC:USOIL",
+    "solana": "BINANCE:SOLUSD",
+    "eurusd": "OANDA:EURUSD",
+}
+
 
 # ✅ Finance news feed
 RSS_FEED = "https://www.fxstreet.com/rss/news"
+def index():
+    selected_symbol = "BINANCE:BTCUSD"  # default
+
+    if request.method == "POST":
+        symbol = request.form.get("symbol")
+        custom = request.form.get("custom_symbol", "").strip().lower()
+
+        if custom:
+            match = get_close_matches(custom.replace("/", ""), SYMBOL_MAP.keys(), n=1, cutoff=0.4)
+            if match:
+                selected_symbol = SYMBOL_MAP[match[0]]
+            else:
+                selected_symbol = "BINANCE:BTCUSD"  # fallback if no match
+        elif symbol:
+            selected_symbol = symbol
+def get_price(symbol):
+    symbol = symbol.upper()
+
+    PRICE_MAP = {
+        "XAUUSD": ("OANDA", "xauusd"),
+        "BTCUSD": ("BINANCE", "bitcoin"),
+        "ETHUSD": ("BINANCE", "ethereum"),
+    }
+
+    try:
+        if symbol in PRICE_MAP:
+            _, coin_id = PRICE_MAP[symbol]
+            url = f"https://api.coingecko.com/api/v3/simple/price?ids={coin_id}&vs_currencies=usd"
+            res = requests.get(url)
+            res.raise_for_status()
+            price = res.json()[coin_id]['usd']
+            return jsonify({"symbol": symbol, "price": f"${price:,.2f}"})
+        else:
+            return jsonify({"error": "Symbol not supported"}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 def get_finance_news():
     feed = feedparser.parse(RSS_FEED)
