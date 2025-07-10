@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 {% block content %}
-<div class="flex gap-1 w-full">
-    <div class="overflow-hidden whitespace-nowrap text-yellow-400 text-md mb-2 lg:mb-1 w-[85%]">
+<div class="flex flex-col md:flex-row md:gap-1 w-full">
+    <div class="overflow-hidden whitespace-nowrap text-yellow-400 text-md mb-2 md:w-4/5 lg:mb-1 lg:w-[85%]">
       <div class="marquee-content animate-marquee">
         {{news_marquee_text}}
       </div>
@@ -13,9 +13,9 @@
   </div>
 
 <!-- 🔘 Dropdown Form to select symbol -->
-<form method="POST" class="mb-4 w-full flex justify-end w-[15%]">
+<form method="POST" class="mb-4 w-full flex md:justify-end md:w-1/5 lg:w-[15%]">
   <!-- <label for="symbol" class="block text-yellow-400 font-bold mb-2">Select Symbol:</label> -->
-  <select name="symbol" id="symbol" class="text-white p-2 rounded bg-yellow-600 outline-none bg-transparent" onchange="this.form.submit()">
+  <select name="symbol" id="symbol" class="w-full text-white p-2 m-2 rounded bg-yellow-600 outline-none ml-auto" onchange="this.form.submit()">
     <option value="OANDA:XAUUSD" {% if symbol == "OANDA:XAUUSD" %}selected{% endif %}>XAUUSD (Gold)</option>
     <option value="BINANCE:BTCUSD" {% if symbol == "BINANCE:BTCUSD" %}selected{% endif %}>BTCUSD</option>
     <option value="BINANCE:ETHUSD" {% if symbol == "BINANCE:ETHUSD" %}selected{% endif %}>ETHUSD</option>
