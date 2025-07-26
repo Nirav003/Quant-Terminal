@@ -1,140 +1,197 @@
-{% extends "layout.html" %}
-{% block content %}
-<body class="p-4">
-
-<div class="flex flex-col border border-white p-4 max-w-[90%] mx-auto">
-  <h2 class="text-sm font-bold mb-4 text-center text-yellow-400">SIGNAL - {Buy/Sell}</h2>
-
-  <div class="flex flex-col lg:flex-row justify-center gap-4 pt-2 border-t border-white">
-
-    <!-- Column 1: Commodities -->
-    <div class="border border-white p-2 w-full lg:w-[22%]">
-      <details open>
-        <summary class="text-md font-bold text-yellow-400 cursor-pointer">Commodities</summary>
-        <ul class="space-y-1 text-sm max-h-[149px] overflow-y-auto mt-2 pr-1 list-none" id="commodity-list">
-          <li><button onclick="updateContent('XAUUSD')" class="hover:text-yellow-400">XAUUSD</button></li>
-          <li><button onclick="updateContent('BTCUSD')" class="hover:text-yellow-400">BTCUSD</button></li>
-          <li><button onclick="updateContent('ETHUSD')" class="hover:text-yellow-400">ETHUSD</button></li>
-          <li><button onclick="updateContent('XAUUSD')" class="hover:text-yellow-400">XAUUSD</button></li>
-          <li><button onclick="updateContent('BTCUSD')" class="hover:text-yellow-400">BTCUSD</button></li>
-          <li><button onclick="updateContent('ETHUSD')" class="hover:text-yellow-400">ETHUSD</button></li>
-          <li><button onclick="updateContent('XAUUSD')" class="hover:text-yellow-400">XAUUSD</button></li>
-          <li><button onclick="updateContent('BTCUSD')" class="hover:text-yellow-400">BTCUSD</button></li>
-          <li><button onclick="updateContent('ETHUSD')" class="hover:text-yellow-400">ETHUSD</button></li>
-          <li><button onclick="updateContent('XAUUSD')" class="hover:text-yellow-400">XAUUSD</button></li>
-          <li><button onclick="updateContent('BTCUSD')" class="hover:text-yellow-400">BTCUSD</button></li>
-          <li><button onclick="updateContent('ETHUSD')" class="hover:text-yellow-400">ETHUSD</button></li>
-        </ul>
-      </details>
-    </div>
-
-    <!-- Column 2: Values -->
-    <div class="border border-white p-2 w-full lg:w-[22%]">
-      <h2 class="text-md font-bold mb-2 text-yellow-400">Values</h2>
-      <div class="mb-3">
-        <p class="text-xs mb-1">Entry</p>
-        <div class="flex items-center space-x-2">
-          <span id="entry" class="text-sm">--</span>
-          <button class="bg-gray-700 px-2 py-1 text-xs rounded" onclick="copyText('entry')">Copy</button>
-        </div>
-      </div>
-      <div class="mb-3">
-        <p class="text-xs mb-1">Stoploss</p>
-        <div class="flex items-center space-x-2">
-          <span id="stoploss" class="text-sm">--</span>
-          <button class="bg-gray-700 px-2 py-1 text-xs rounded" onclick="copyText('stoploss')">Copy</button>
-        </div>
-      </div>
-      <div>
-        <p class="text-xs mb-1">Take Profit</p>
-        <div class="flex items-center space-x-2">
-          <span id="takeprofit" class="text-sm">--</span>
-          <button class="bg-gray-700 px-2 py-1 text-xs rounded" onclick="copyText('takeprofit')">Copy</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Column 3: Stats -->
-    <div class="border border-white p-2 w-full lg:w-[20%]">
-      <h2 class="text-md font-bold mb-2 text-yellow-400">Stats</h2>
-      <ul class="text-sm space-y-2" id="stats">
-        <li>--</li>
-        <li>--</li>
-        <li>--</li>
-      </ul>
-    </div>
-
-    <!-- Column 4: PnL -->
-    <div class="border border-white p-2 w-full lg:w-[22%]">
-      <div id="symbol-name" class="text-sm font-bold text-yellow-400">--</div>
-      <details open>
-        <summary class="cursor-pointer">USD/INR</summary>
-        <ul id="pnl-list" class="pl-4 mt-1 overflow-y-auto max-h-32 w-full text-sm">
-          <li class="text-gray-400">Select commodity</li>
-        </ul>
-      </details>
-    </div>
-
-  </div>
-
-  <!-- Automate Button -->
-  <div class="mt-6 flex justify-center">
-    <button class="border border-white px-6 py-2 text-sm hover:bg-gray-800">AUTOMATE</button>
-  </div>
-</div>
-
-<!-- JavaScript for updating values -->
-<script>
-  const data = {
-    XAUUSD: {
-      entry: "3324.22",
-      stoploss: "3322.22",
-      takeprofit: "3328.22",
-      stats: ["1:2 ratio", "25 Pips", "PnL - 20$"],
-      pnl: ["+ $28", "+ $22", "$0", "$0", "- $15", "+ $35"]
-    },
-    BTCUSD: {
-      entry: "63124.00",
-      stoploss: "62900.00",
-      takeprofit: "63600.00",
-      stats: ["1:1.5 ratio", "300 Pips", "PnL - 80$"],
-      pnl: ["+ $50", "- $12", "+ $10", "$0", "- $20", "+ $28"]
-    },
-    ETHUSD: {
-      entry: "3250.00",
-      stoploss: "3225.00",
-      takeprofit: "3300.00",
-      stats: ["1:2.5 ratio", "120 Pips", "PnL - 40$"],
-      pnl: ["+ $12", "+ $18", "$0", "- $5", "- $10", "+ $30"]
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SamFX BTCUSD Live Scalper</title>
+  <style>
+    :root {
+      --yellow: #ffcc00;
     }
-  };
 
-  function updateContent(symbol) {
-    const d = data[symbol];
-    if (!d) return;
+    body {
+      font-family: monospace;
+      background-color: #111;
+      color: var(--yellow);
+      margin: 0;
+      padding: 40px 20px;
+      height: 90vh;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
 
-    document.getElementById("entry").textContent = d.entry;
-    document.getElementById("stoploss").textContent = d.stoploss;
-    document.getElementById("takeprofit").textContent = d.takeprofit;
+    .container {
+      display: flex;
+      gap: 20px;
+      width: 100%;
+      max-width: 1200px;
+      justify-content: space-between;
+    }
 
-    document.getElementById("stats").innerHTML = d.stats.map(s => `<li>${s}</li>`).join("");
+    .box {
+      border: 1px solid #555;
+      padding: 20px;
+      background: #222;
+      width: 100%;
+      border-radius: 8px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .boxx {
+      border: 1px solid #555;
+      padding: 10px;
+      background: #222;
+      width: 100%;
+      border-radius: 8px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
 
-    document.getElementById("symbol-name").textContent = symbol;
-    const pnlList = d.pnl.slice(0, -1).map(val => {
-      const color = val.includes('-') ? 'text-red-400' : 'text-green-300';
-      return `<li class="${color}">${val}</li>`;
-    }).join("") + `
-      <li><hr class="border-dashed border-t my-1 w-[90%]"></li>
-      <li class="font-bold text-green-300 text-right pr-5">${d.pnl.at(-1)}</li>
-    `;
-    document.getElementById("pnl-list").innerHTML = pnlList;
-  }
+    h2 {
+      color: var(--yellow);
+      text-align: center;
+    }
 
-  function copyText(id) {
-    const text = document.getElementById(id).textContent;
-    navigator.clipboard.writeText(text);
-  }
-</script>
+    .field {
+      margin-bottom: 14px;
+      display: flex;
+      flex-direction: column;
+    }
 
+    .field label {
+      margin-bottom: 4px;
+    }
+
+    .field input {
+      background-color: #111;
+      color: var(--yellow);
+      border: 1px solid #444;
+      padding: 8px;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+
+    button {
+      background: #333;
+      color: var(--yellow);
+      border: 1px solid #555;
+      padding: 10px 18px;
+      margin-top: 10px;
+      display: block;
+      cursor: pointer;
+      font-size: 16px;
+      border-radius: 5px;
+      width: 100%;
+    }
+
+    #loader {
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 14px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .container {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+
+    /* Color feedback */
+    #status.buy { color: lime; }
+    #status.sell { color: red; }
+  </style>
+
+  <script>
+    async function fetchData() {
+      const res = await fetch("/data");
+      const data = await res.json();
+
+      document.getElementById("status").value = data.status;
+      document.getElementById("entry").value = data.entry || '-';
+      document.getElementById("tp").value = data.tp || '-';
+      document.getElementById("sl").value = data.sl || '-';
+      document.getElementById("price").value = data.current || '-';
+      document.getElementById("pips").value = data.pips || '-';
+      document.getElementById("pnl").value = data.pnl || '-';
+
+      const statusEl = document.getElementById("status");
+      if (data.signal === "SELL") {
+        statusEl.className = "sell";
+      } else if (data.signal === "BUY") {
+        statusEl.className = "buy";
+      } else {
+        statusEl.className = "";
+      }
+
+      const loader = document.getElementById("loader");
+      loader.style.display = data.status.includes("waiting") ? "block" : "none";
+    }
+
+    function copyTrade() {
+      const text = `Status: ${status.value}\nEntry: ${entry.value}\nTP: ${tp.value}\nSL: ${sl.value}\nCurrent: ${price.value}`;
+      navigator.clipboard.writeText(text);
+    }
+
+    function calculatePips() {
+      const entry = parseFloat(document.getElementById("calc-entry").value);
+      const exit = parseFloat(document.getElementById("calc-exit").value);
+      const lotsize = parseFloat(document.getElementById("calc-lot").value || 0.01);
+      const pips = Math.round((entry - exit) * 100000) / 10;
+      const direction = entry > exit ? "SELL" : "BUY";
+      const pnl = (pips * lotsize).toFixed(2);
+
+      document.getElementById("calc-result").value = `${pips} pips | PnL: $${pnl} (${direction})`;
+    }
+
+    setInterval(fetchData, 10000);
+    window.onload = fetchData;
+  </script>
+</head>
+
+<body>
+  <div class="container">
+    <!-- SIGNAL PANEL -->
+    <div class="box">
+      <h2>SamFX BTC/USD Signal</h2>
+      <div id="loader">⏳</div>
+
+      <div class="field"><label>Status</label><input id="status" readonly></div>
+      <div class="field"><label>Entry</label><input id="entry" readonly></div>
+      <div class="field"><label>TP</label><input id="tp" readonly></div>
+      <div class="field"><label>SL</label><input id="sl" readonly></div>
+      <div class="field"><label>Current Price</label><input id="price" readonly></div>
+      <div class="field"><label>Pips</label><input id="pips" readonly></div>
+      <div class="field"><label>Profit/Loss</label><input id="pnl" readonly></div>
+
+      <button onclick="copyTrade()">📋 Copy Trade</button>
+      <button onclick="window.location.href='/'">🏠 Go to Home</button>
+    </div>
+
+    <!-- PIP CALCULATOR -->
+    <div class="boxx">
+      <h2>Pip Calculator</h2>
+
+      <div class="field"><label>Entry Price</label><input id="calc-entry" type="number" placeholder="e.g., 118000.00" /></div>
+      <div class="field"><label>Exit Price</label><input id="calc-exit" type="number" placeholder="e.g., 118050.00" /></div>
+      <div class="field"><label>Lot Size</label><input id="calc-lot" type="number" step="0.01" placeholder="e.g., 0.02" /></div>
+      <div class="field"><label>Result</label><input id="calc-result" readonly /></div>
+
+      <button onclick="calculatePips()">🧮 Calculate Pips</button>
+    </div>
+  </div>
 </body>
-{% endblock %}
+</html>

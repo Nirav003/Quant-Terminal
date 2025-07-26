@@ -1,10 +1,12 @@
-from flask import Flask, render_template, request, Blueprint
+from flask import Flask, render_template, request, Blueprint, jsonify
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
 import requests
 import yfinance as yf
 import numpy as np
+from ta.trend import EMAIndicator
+from ta.volatility import AverageTrueRange
 import time
 import re
 import feedparser
@@ -158,10 +160,131 @@ def index():
         ticker_text=ticker_text,
         news_marquee_text=news_marquee_text  # Or: fetch_crypto_news()
     )
+# === Strategy Settings ===
+fast_length = 9
+slow_length = 21
+avg_length = 200
+atr_period = 14
+sl_multiplier = 0.69
+tp_multiplier = 1.25
+lot_size = 0.02
 
-@app.route("/automate")
-def automate():
-    return render_template("automate.html", summary=summary())
+# === Global Trade State ===
+active_trade = None
+trade_announced = False
+last_update = {'status': 'Waiting for trade ...'}
+
+def get_data():
+    url = 'https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1m&limit=200'
+    r = requests.get(url)
+    data = r.json()
+    df = pd.DataFrame(data, columns=[
+        'timestamp', 'open', 'high', 'low', 'close', 'volume',
+        'close_time', 'quote_asset_volume', 'number_of_trades',
+        'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'ignore'
+    ])
+    df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+    df.set_index('timestamp', inplace=True)
+    df = df.astype(float)
+    return df
+
+def apply_indicators(df):
+    df['fast_ema'] = EMAIndicator(df['close'], window=fast_length).ema_indicator()
+    df['slow_ema'] = EMAIndicator(df['close'], window=slow_length).ema_indicator()
+    df['avg_ema'] = EMAIndicator(df['close'], window=avg_length).ema_indicator()
+    df['atr'] = AverageTrueRange(high=df['high'], low=df['low'], close=df['close'], window=atr_period).average_true_range()
+    return df
+
+def get_signal(df):
+    last = df.iloc[-1]
+    prev = df.iloc[-2]
+    if prev['fast_ema'] < prev['slow_ema'] and last['fast_ema'] > last['slow_ema']:
+        return 'buy'
+    elif prev['fast_ema'] > prev['slow_ema'] and last['fast_ema'] < last['slow_ema']:
+        return 'sell'
+    return None
+
+def calculate_trade(signal, price, atr):
+    if signal == 'buy':
+        sl = price - atr * sl_multiplier
+        tp = price + atr * tp_multiplier
+    else:
+        sl = price + atr * sl_multiplier
+        tp = price - atr * tp_multiplier
+    return {'type': signal, 'entry': price, 'sl': sl, 'tp': tp}
+
+def monitor_trade(trade, price):
+    if trade['type'] == 'buy':
+        if price >= trade['tp']:
+            return 'TP'
+        elif price <= trade['sl']:
+            return 'SL'
+    elif trade['type'] == 'sell':
+        if price <= trade['tp']:
+            return 'TP'
+        elif price >= trade['sl']:
+            return 'SL'
+    return None
+
+def calculate_pnl(entry, exit_price):
+    pips = abs(exit_price - entry) * 10
+    pnl = pips * lot_size
+    return round(pips, 1), round(pnl, 2)
+
+@app.route('/')
+def home():
+    return render_template('automate.html')
+
+@app.route('/data')
+def signal_data():
+    global active_trade, trade_announced, last_update
+
+    try:
+        df = get_data()
+        df = apply_indicators(df)
+        signal = get_signal(df)
+        latest = df.iloc[-1]
+        current_price = latest['close']
+        atr = latest['atr']
+
+        if not active_trade:
+            if signal:
+                active_trade = calculate_trade(signal, current_price, atr)
+                trade_announced = True
+                last_update = {
+                    'status': f"{signal.upper()} SIGNAL",
+                    'entry': round(active_trade['entry'], 2),
+                    'tp': round(active_trade['tp'], 2),
+                    'sl': round(active_trade['sl'], 2),
+                    'current': round(current_price, 2),
+                    'pips': '-',
+                    'pnl': '-'
+                }
+            else:
+                last_update = {'status': 'Waiting for trade ...'}
+
+        else:
+            result = monitor_trade(active_trade, current_price)
+            if result:
+                pips, pnl = calculate_pnl(active_trade['entry'], current_price)
+                last_update = {
+                    'status': f"{result} HIT",
+                    'entry': round(active_trade['entry'], 2),
+                    'tp': round(active_trade['tp'], 2),
+                    'sl': round(active_trade['sl'], 2),
+                    'current': round(current_price, 2),
+                    'pips': pips,
+                    'pnl': f"${pnl}"
+                }
+                active_trade = None
+            else:
+                last_update['current'] = round(current_price, 2)
+
+    except Exception as e:
+        last_update = {'status': f"Error: {e}"}
+
+    return jsonify(last_update)
+
 
 @app.route("/backtest")
 def backtest():
@@ -178,6 +301,10 @@ def settings():
 @app.route("/analysis")
 def analysis():
     return render_template("analysis.html", summary=summary())
+
+@app.route('/automate')
+def automate_page():
+    return render_template('automate.html')
 
 # ✅ Run
 if __name__ == "__main__":
