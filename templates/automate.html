@@ -14,38 +14,50 @@
       background-color: #111;
       color: var(--yellow);
       margin: 0;
-      padding: 40px 20px;
-      height: 90vh;
-      overflow: hidden;
+      padding: 20px;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .main {
       display: flex;
       align-items: center;
       justify-content: center;
+      flex-direction: column;
+      width: 100%;
+      gap: 10px;
     }
 
     .container {
       display: flex;
-      gap: 20px;
+      gap: 10px;
       width: 100%;
       max-width: 1200px;
       justify-content: space-between;
     }
 
-    .box {
+    .home{
+      cursor: pointer;
+      width: 8%;
+    }
+
+    .box-1 {
       border: 1px solid #555;
       padding: 20px;
       background: #222;
-      width: 100%;
+      width: 50%;
       border-radius: 8px;
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      justify-content: right;
     }
-    .boxx {
+
+    .box-2 {
       border: 1px solid #555;
-      padding: 10px;
+      padding: 20px;
       background: #222;
-      width: 100%;
+      width: 50%;
       border-radius: 8px;
       box-sizing: border-box;
       display: flex;
@@ -59,9 +71,10 @@
     }
 
     .field {
-      margin-bottom: 14px;
+      margin-bottom: 10px;
       display: flex;
       flex-direction: column;
+      width: 100%;
     }
 
     .field label {
@@ -75,6 +88,7 @@
       padding: 8px;
       border-radius: 4px;
       font-size: 16px;
+      outline: none;
     }
 
     button {
@@ -88,6 +102,16 @@
       font-size: 16px;
       border-radius: 5px;
       width: 100%;
+    }
+
+    .row {
+      width: 100%;
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 20px;
+      flex-wrap: nowrap;
     }
 
     #loader {
@@ -163,35 +187,49 @@
 </head>
 
 <body>
-  <div class="container">
-    <!-- SIGNAL PANEL -->
-    <div class="box">
-      <h2>SamFX BTC/USD Signal</h2>
-      <div id="loader">⏳</div>
+  <div class="main">
+    
+    <!-- HOME -->
+     <div class="home" onclick="window.location.href='/'">
+        <button>🏠 Home</button>
+     </div>
 
-      <div class="field"><label>Status</label><input id="status" readonly></div>
-      <div class="field"><label>Entry</label><input id="entry" readonly></div>
-      <div class="field"><label>TP</label><input id="tp" readonly></div>
-      <div class="field"><label>SL</label><input id="sl" readonly></div>
-      <div class="field"><label>Current Price</label><input id="price" readonly></div>
-      <div class="field"><label>Pips</label><input id="pips" readonly></div>
-      <div class="field"><label>Profit/Loss</label><input id="pnl" readonly></div>
+     <div class="container">
 
-      <button onclick="copyTrade()">📋 Copy Trade</button>
-      <button onclick="window.location.href='/'">🏠 Go to Home</button>
-    </div>
-
-    <!-- PIP CALCULATOR -->
-    <div class="boxx">
-      <h2>Pip Calculator</h2>
-
-      <div class="field"><label>Entry Price</label><input id="calc-entry" type="number" placeholder="e.g., 118000.00" /></div>
-      <div class="field"><label>Exit Price</label><input id="calc-exit" type="number" placeholder="e.g., 118050.00" /></div>
-      <div class="field"><label>Lot Size</label><input id="calc-lot" type="number" step="0.01" placeholder="e.g., 0.02" /></div>
-      <div class="field"><label>Result</label><input id="calc-result" readonly /></div>
-
-      <button onclick="calculatePips()">🧮 Calculate Pips</button>
-    </div>
+       <!-- SIGNAL PANEL -->
+       <div class="box-1">
+         <h2>SamFX BTC/USD Signal</h2>
+         <div id="loader">⏳</div>
+         
+         <div class="field"><label>Status</label><input id="status" readonly></div>
+         <div class="row">
+           <div class="field"><label>Current Price</label><input id="price" readonly></div>
+           <div class="field"><label>Entry</label><input id="entry" readonly></div>
+         </div>
+         <div class="row">
+           <div class="field"><label>TP</label><input id="tp" readonly></div>
+           <div class="field"><label>SL</label><input id="sl" readonly></div>
+         </div>
+         <div class="row">
+           <div class="field"><label>Pips</label><input id="pips" readonly></div>
+           <div class="field"><label>Profit/Loss</label><input id="pnl" readonly></div>
+         </div>
+   
+         <button onclick="copyTrade()">📋 Copy Trade</button>
+       </div>
+   
+       <!-- PIP CALCULATOR -->
+       <div class="box-2">
+         <h2>Pip Calculator</h2>
+   
+         <div class="field"><label>Entry Price</label><input id="calc-entry" type="number" placeholder="e.g., 118000.00" /></div>
+         <div class="field"><label>Exit Price</label><input id="calc-exit" type="number" placeholder="e.g., 118050.00" /></div>
+         <div class="field"><label>Lot Size</label><input id="calc-lot" type="number" step="0.01" placeholder="e.g., 0.02" /></div>
+         <div class="field"><label>Result</label><input id="calc-result" readonly /></div>
+   
+         <button onclick="calculatePips()">🧮 Calculate Pips</button>
+       </div>
+     </div>
   </div>
 </body>
 </html>
