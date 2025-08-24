@@ -1,19 +1,21 @@
-from flask import Flask, render_template, request, Blueprint, jsonify
+from flask import Flask, render_template, request, jsonify
 import pandas as pd
-import plotly.graph_objects as go
-import plotly.express as px
 import requests
-import yfinance as yf
 import numpy as np
+import time
+import feedparser
+from difflib import get_close_matches
+from db import query_db
 from ta.trend import EMAIndicator
 from ta.volatility import AverageTrueRange
-import time
-import re
-import feedparser
-from db import query_db
-from difflib import get_close_matches
+
+# === Import ML helpers ===
+import ml
+from ml import compute_indicators, train_q_agent, backtest, QTrader  # or TabularQAgent if you rename
 
 app = Flask(__name__)
+
+# === Symbol map ===
 SYMBOL_MAP = {
     "xauusd": "OANDA:XAUUSD",
     "btcusd": "BINANCE:BTCUSD",
@@ -24,45 +26,8 @@ SYMBOL_MAP = {
     "eurusd": "OANDA:EURUSD",
 }
 
-
 # ✅ Finance news feed
 RSS_FEED = "https://www.fxstreet.com/rss/news"
-def index():
-    selected_symbol = "BINANCE:BTCUSD"  # default
-
-    if request.method == "POST":
-        symbol = request.form.get("symbol")
-        custom = request.form.get("custom_symbol", "").strip().lower()
-
-        if custom:
-            match = get_close_matches(custom.replace("/", ""), SYMBOL_MAP.keys(), n=1, cutoff=0.4)
-            if match:
-                selected_symbol = SYMBOL_MAP[match[0]]
-            else:
-                selected_symbol = "BINANCE:BTCUSD"  # fallback if no match
-        elif symbol:
-            selected_symbol = symbol
-def get_price(symbol):
-    symbol = symbol.upper()
-
-    PRICE_MAP = {
-        "XAUUSD": ("OANDA", "xauusd"),
-        "BTCUSD": ("BINANCE", "bitcoin"),
-        "ETHUSD": ("BINANCE", "ethereum"),
-    }
-
-    try:
-        if symbol in PRICE_MAP:
-            _, coin_id = PRICE_MAP[symbol]
-            url = f"https://api.coingecko.com/api/v3/simple/price?ids={coin_id}&vs_currencies=usd"
-            res = requests.get(url)
-            res.raise_for_status()
-            price = res.json()[coin_id]['usd']
-            return jsonify({"symbol": symbol, "price": f"${price:,.2f}"})
-        else:
-            return jsonify({"error": "Symbol not supported"}), 400
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
 
 def get_finance_news():
     feed = feedparser.parse(RSS_FEED)
@@ -88,7 +53,10 @@ FOREX = {
     "usd": "USD"
 }
 
-# ✅ Summary calculation
+# === Global trained agent ===
+trained_agent = None
+
+# ✅ Summary calculation (uses query_db)
 def summary():
     btc_df = query_db("SELECT * FROM btc_usd")
 
@@ -124,42 +92,6 @@ def summary():
         "macd_signal": round(btc_df["MACD Signal"].iloc[-1], 2),
     }
 
-# ✅ Routes
-@app.route("/", methods=["GET", "POST"])
-def index():
-    default_symbol = "BINANCE:BTCUSD"
-
-    # Get selected symbol from form
-    symbol = request.form.get("symbol", default_symbol)
-
-    try:
-        coin_ids = ",".join(COINS.keys())
-        forex_ids = ",".join(FOREX.keys())
-        url = f"https://api.coingecko.com/api/v3/simple/price?ids={coin_ids}&vs_currencies={forex_ids}"
-        res = requests.get(url)
-        res.raise_for_status()
-        prices = res.json()
-
-        ticker_items = []
-        for coin_id, sym in COINS.items():
-            price = prices.get(coin_id, {}).get('usd', 'N/A')
-            ticker_items.append(f"{sym}/USD: ${price:,}")
-        ticker_text = "   |   ".join(ticker_items)
-
-    except Exception as e:
-        ticker_text = f"Error fetching prices: {e}"
-
-    # ✅ Use Yahoo Finance RSS instead of Wikipedia if preferred:
-    rss_headlines = get_finance_news()
-    news_marquee_text = "   |   ".join(rss_headlines)
-
-    return render_template(
-        "index.html",
-        summary=summary(),
-        symbol=symbol,
-        ticker_text=ticker_text,
-        news_marquee_text=news_marquee_text  # Or: fetch_crypto_news()
-    )
 # === Strategy Settings ===
 fast_length = 9
 slow_length = 21
@@ -174,6 +106,26 @@ active_trade = None
 trade_announced = False
 last_update = {'status': 'Waiting for trade ...'}
 
+# === Global Trade History ===
+trade_history = []
+
+def save_trade(trade, result, exit_price, pips, pnl):
+    record = {
+        "type": trade.get("type"),
+        "entry": round(trade.get("entry", 0), 2),
+        "tp": round(trade.get("tp", 0), 2),
+        "sl": round(trade.get("sl", 0), 2),
+        "exit": round(exit_price, 2),
+        "result": result,
+        "pips": pips,
+        "pnl": pnl,
+        "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+    }
+    trade_history.append(record)
+    if len(trade_history) > 10:
+        trade_history.pop(0)
+
+# === Data & Indicators ===
 def get_data():
     url = 'https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1m&limit=200'
     r = requests.get(url)
@@ -231,14 +183,96 @@ def calculate_pnl(entry, exit_price):
     pnl = pips * lot_size
     return round(pips, 1), round(pnl, 2)
 
-@app.route('/')
-def home():
+# === Routes ===
+
+@app.route("/", methods=["GET", "POST"])
+def index():
+    default_symbol = "BINANCE:BTCUSD"
+    symbol = request.form.get("symbol", default_symbol)
+    custom = request.form.get("custom_symbol", "").strip().lower()
+
+    if custom:
+        match = get_close_matches(custom.replace("/", ""), SYMBOL_MAP.keys(), n=1, cutoff=0.4)
+        if match:
+            symbol = SYMBOL_MAP[match[0]]
+        else:
+            symbol = default_symbol
+
+    try:
+        coin_ids = ",".join(COINS.keys())
+        forex_ids = ",".join(FOREX.keys())
+        url = f"https://api.coingecko.com/api/v3/simple/price?ids={coin_ids}&vs_currencies={forex_ids}"
+        res = requests.get(url)
+        res.raise_for_status()
+        prices = res.json()
+
+        ticker_items = []
+        for coin_id, sym in COINS.items():
+            price = prices.get(coin_id, {}).get('usd', 'N/A')
+            if isinstance(price, (int, float)):
+                ticker_items.append(f"{sym}/USD: ${price:,}")
+            else:
+                ticker_items.append(f"{sym}/USD: {price}")
+        ticker_text = "   |   ".join(ticker_items)
+
+    except Exception as e:
+        ticker_text = f"Error fetching prices: {e}"
+
+    rss_headlines = get_finance_news()
+    news_marquee_text = "   |   ".join(rss_headlines)
+
+    return render_template(
+        "index.html",
+        summary=summary(),
+        symbol=symbol,
+        ticker_text=ticker_text,
+        news_marquee_text=news_marquee_text
+    )
+
+@app.route('/automate')
+def automate_page():
     return render_template('automate.html')
+
+@app.route("/analysis")
+def analysis():
+    return render_template("analysis.html", summary=summary())
+
+
+@app.route("/api/btc_price")
+def btc_price():
+    try:
+        res = requests.get("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd")
+        data = res.json()
+        return jsonify({"price": data["bitcoin"]["usd"]})
+    except Exception as e:
+        return jsonify({"price": 0, "error": str(e)})
+
+@app.route("/api/update_data")
+def update_data():
+    df = ml.fetch_data()
+    df = compute_indicators(df)
+    return jsonify({"status": "updated", "rows": len(df)})
+
+@app.route("/api/train")
+def train():
+    df = ml.fetch_data()
+    df = compute_indicators(df)
+    global trained_agent
+    trained_agent = train_q_agent(df)
+    return jsonify({"status": "trained", "q_states": len(trained_agent.q_table)})
+
+@app.route("/api/backtest")
+def backtest_api():
+    if trained_agent is None:
+        return jsonify({"error": "No trained agent found. Train first via /api/train"}), 400
+    df = ml.fetch_data()
+    df = compute_indicators(df)
+    result = backtest(trained_agent, df)
+    return jsonify(result)
 
 @app.route('/data')
 def signal_data():
     global active_trade, trade_announced, last_update
-
     try:
         df = get_data()
         df = apply_indicators(df)
@@ -262,11 +296,11 @@ def signal_data():
                 }
             else:
                 last_update = {'status': 'Waiting for trade ...'}
-
         else:
             result = monitor_trade(active_trade, current_price)
             if result:
                 pips, pnl = calculate_pnl(active_trade['entry'], current_price)
+                save_trade(active_trade, result, current_price, pips, pnl)
                 last_update = {
                     'status': f"{result} HIT",
                     'entry': round(active_trade['entry'], 2),
@@ -285,9 +319,12 @@ def signal_data():
 
     return jsonify(last_update)
 
+@app.route("/trades")
+def trades():
+    return jsonify(trade_history)
 
 @app.route("/backtest")
-def backtest():
+def backtest_page():
     return render_template("backtest.html", summary=summary())
 
 @app.route("/logs")
@@ -297,14 +334,6 @@ def logs():
 @app.route("/settings")
 def settings():
     return render_template("settings.html", summary=summary())
-
-@app.route("/analysis")
-def analysis():
-    return render_template("analysis.html", summary=summary())
-
-@app.route('/automate')
-def automate_page():
-    return render_template('automate.html')
 
 # ✅ Run
 if __name__ == "__main__":

@@ -1,27 +1,177 @@
-{% extends "layout.html" %}
-
-{% block content %}
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Dog Meme</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Trade Logs — SamFX Terminal</title>
   <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      background-color: #000;
+    :root{ --bg:#000; --panel:#050505; --yellow:#ffcc00; --muted:#7a7a7a; --accent:#111; --green:#00ff7f; --red:#ff4d4d }
+    html,body{height:100%;margin:0;background:var(--bg);color:var(--yellow);font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace}
+    .wrap{max-width:1200px;margin:18px auto;padding:18px;}
+
+    header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+    .title{font-size:20px;letter-spacing:0.06em}
+    .subtitle{color:var(--muted);font-size:12px}
+
+    .panel{background:linear-gradient(180deg, #050505 0%, #0a0a0a 100%);border:1px solid #1a1a1a;padding:12px;border-radius:6px;box-shadow:0 6px 20px rgba(0,0,0,0.6)}
+
+    /* terminal-like top bar */
+    .terminal-bar{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+    .dot{width:10px;height:10px;border-radius:50%;background:#222;box-shadow:0 0 0 2px #111 inset}
+
+    /* table */
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    thead th{position:sticky;top:0;background:#060606;color:var(--yellow);padding:10px;text-align:left;border-bottom:1px solid #222;font-weight:600}
+    tbody tr{border-bottom:1px solid #0f0f0f}
+    tbody td{padding:10px;color:var(--yellow)}
+    tbody tr:nth-child(odd){background:rgba(255,204,0,0.02)}
+
+    .small{font-size:12px;color:var(--muted)}
+    .badge{padding:6px 8px;border-radius:4px;font-weight:700;display:inline-block}
+    .buy{color:var(--green);background:rgba(0,255,127,0.04)}
+    .sell{color:var(--red);background:rgba(255,77,77,0.04)}
+    .result-tp{color:var(--green)}
+    .result-sl{color:var(--red)}
+
+    /* responsive */
+    @media (max-width:800px){
+      .wrap{padding:8px}
+      thead th:nth-child(4), tbody td:nth-child(4), thead th:nth-child(5), tbody td:nth-child(5) {display:none}
     }
-    img {
-      width: 100vw;
-      height: 100vh;
-      object-fit: cover;
+
+    .meta{display:flex;gap:14px;align-items:center}
+    .refresh{background:transparent;border:1px solid #222;padding:6px 10px;border-radius:6px;color:var(--yellow);cursor:pointer}
+    .muted{color:var(--muted)}
+
+    .empty{padding:24px;text-align:center;color:var(--muted)}
+
+    /* Home button consistent with automate.html */
+    .home-btn {
+      display:inline-block;
+      margin-bottom:15px;
+      padding:8px 14px;
+      background:#222;
+      color:var(--yellow);
+      border:1px solid var(--yellow);
+      border-radius:6px;
+      cursor:pointer;
+      text-decoration:none;
+      font-size:14px;
     }
+    .home-btn:hover { background:#111; }
   </style>
 </head>
 <body>
-  <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcGw5am1zbzdmZGs4dXN5b2ZpeG42ZDIyeG11ZjhpeWVheTh5Mm9vaSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/1iTItUOuJLsbev28/giphy.gif" alt="Dog Meme">
+  <!-- HOME -->
+  <a href="/" class="home-btn">🏠 Home</a>
+
+  <div class="wrap">
+    <header>
+      <div>
+        <div class="title">SAMFX — Trade Logs</div>
+        <div class="subtitle small">Bloomberg-style terminal • Live last 10 completed trades</div>
+      </div>
+      <div class="meta">
+        <div class="small muted" id="last-updated">Last updated: --</div>
+        <button class="refresh" id="btn-refresh">Refresh</button>
+      </div>
+    </header>
+
+    <div class="panel">
+      <div class="terminal-bar">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div style="flex:1"></div>
+        <div class="small muted">API: <span id="api-status">/trades</span></div>
+      </div>
+
+      <div id="table-wrap">
+        <table aria-live="polite">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Side</th>
+              <th>Entry</th>
+              <th>Exit</th>
+              <th>TP</th>
+              <th>SL</th>
+              <th>Pips</th>
+              <th>PnL</th>
+              <th>Result</th>
+            </tr>
+          </thead>
+          <tbody id="trades-body">
+            <tr><td colspan="9" class="empty">No trades yet — waiting for completed trades.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const endpoint = '/trades';
+    const bodyEl = document.getElementById('trades-body');
+    const lastUpdatedEl = document.getElementById('last-updated');
+    const apiStatusEl = document.getElementById('api-status');
+    const btnRefresh = document.getElementById('btn-refresh');
+
+    async function fetchTrades() {
+      try {
+        const res = await fetch(endpoint, {cache: 'no-store'});
+        if (!res.ok) throw new Error(res.status + ' ' + res.statusText);
+        const trades = await res.json();
+        renderTrades(trades);
+        apiStatusEl.textContent = endpoint;
+        lastUpdatedEl.textContent = 'Last updated: ' + new Date().toLocaleString();
+      } catch (err) {
+        bodyEl.innerHTML = `<tr><td colspan="9" class="empty">Error fetching trades: ${err.message}</td></tr>`;
+        lastUpdatedEl.textContent = 'Last updated: -- (error)';
+      }
+    }
+
+    function fmt(v){
+      if (v === null || v === undefined) return '-';
+      if (typeof v === 'number') return v.toFixed(2);
+      return String(v);
+    }
+
+    function renderTrades(trades){
+      if (!Array.isArray(trades) || trades.length === 0){
+        bodyEl.innerHTML = `<tr><td colspan="9" class="empty">No trades yet — waiting for completed trades.</td></tr>`;
+        return;
+      }
+
+      // reverse so newest at top
+      const rows = trades.slice().reverse().map(t => {
+        const sideClass = (t.type || '').toLowerCase() === 'buy' ? 'buy' : 'sell';
+        let resultClass = '';
+        if ((t.result || '').toUpperCase() === 'TP') resultClass = 'result-tp';
+        else if ((t.result || '').toUpperCase() === 'SL') resultClass = 'result-sl';
+        return `
+          <tr>
+            <td class="small">${t.timestamp || ''}</td>
+            <td><span class="badge ${sideClass}">${(t.type||'').toUpperCase()}</span></td>
+            <td>${fmt(t.entry)}</td>
+            <td>${fmt(t.exit)}</td>
+            <td>${fmt(t.tp)}</td>
+            <td>${fmt(t.sl)}</td>
+            <td>${fmt(t.pips)}</td>
+            <td>${t.pnl || '-'}</td>
+            <td class="small ${resultClass}">${(t.result||'-').toUpperCase()}</td>
+          </tr>`;
+      }).join('');
+
+      bodyEl.innerHTML = rows;
+    }
+
+    // auto-refresh every 5s
+    let timer = setInterval(fetchTrades, 5000);
+    btnRefresh.addEventListener('click', () => { fetchTrades(); });
+
+    // initial fetch
+    fetchTrades();
+  </script>
 </body>
 </html>
-
-{% endblock %}
