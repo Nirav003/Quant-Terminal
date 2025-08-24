@@ -1,26 +1,325 @@
-{% extends "layout.html" %}
-
-{% block content %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Dog Meme</title>
+  <title>Quant Terminal - Settings</title>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap" rel="stylesheet">
   <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      background-color: #000;
+    :root {
+      --bg: #000;
+      --panel: #050505;
+      --yellow: #ffcc00;
+      --muted: #7a7a7a;
+      --accent: #111;
+      --green: #00ff7f;
+      --red: #ff4d4d;
     }
-    img {
-      width: 100vw;
-      height: 100vh;
-      object-fit: cover;
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: 'Roboto Mono', monospace;
+      background: var(--bg);
+      color: var(--yellow);
+      box-sizing: border-box;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2.2rem;
+      margin-bottom: 20px;
+      color: var(--yellow);
+    }
+
+    .wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 18px 18px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin: 0 20px 20px 20px;
+    }
+
+    .card {
+      background: linear-gradient(180deg, #050505 0%, #0a0a0a 100%);
+      border: 1px solid #1a1a1a;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 0 25px rgba(255, 204, 0, 0.2);
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 1.5rem;
+      border-bottom: 1px solid #222;
+      padding-bottom: 6px;
+      color: var(--yellow);
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    input[type="text"], input[type="number"], input[type="password"], select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border-radius: 5px;
+      border: 1px solid #333;
+      background: var(--bg);
+      color: var(--yellow);
+    }
+
+    input[type="checkbox"] {
+      margin-right: 8px;
+      accent-color: var(--yellow);
+    }
+
+    button {
+      background: var(--yellow);
+      color: #000;
+      border: none;
+      padding: 10px 16px;
+      margin-top: 15px;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background: #e6b800;
+    }
+
+    .home-btn {
+      display: inline-block;
+      margin-bottom: 15px;
+      padding: 8px 14px;
+      background: #222;
+      color: var(--yellow);
+      border: 1px solid var(--yellow);
+      border-radius: 6px;
+      cursor: pointer;
+      text-decoration: none;
+      font-size: 14px;
+      transition: background 0.2s;
+    }
+    .home-btn:hover { background: #111; }
+
+    .section-header {
+      font-size: 1.1rem;
+      margin-top: 15px;
+      text-decoration: underline;
+      color: var(--yellow);
+    }
+
+    .version, .about {
+      margin-top: 10px;
+      font-size: 0.9rem;
+      color: var(--yellow);
+      line-height: 1.4rem;
+    }
+
+    .footer {
+      position: fixed;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      text-align: center;
+      padding: 10px 0;
+      font-size: 0.9rem;
+      border-top: 1px solid #222;
+      color: var(--yellow);
+      background: var(--accent);
+      z-index: 100;
     }
   </style>
 </head>
 <body>
-  <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcGw5am1zbzdmZGs4dXN5b2ZpeG42ZDIyeG11ZjhpeWVheTh5Mm9vaSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/1iTItUOuJLsbev28/giphy.gif" alt="Dog Meme">
+  <div class="wrap">
+    <h1>Quant Terminal - Settings</h1>
+    <a href="/" class="home-btn">← Home</a>
+
+    <div class="grid">
+      <!-- General Settings -->
+      <div class="card">
+        <h2>General Settings</h2>
+        <label>Username</label>
+        <input type="text" id="username" placeholder="Enter your name">
+
+        <label>Theme</label>
+        <select id="theme-select">
+          <option value="dark">Dark</option>
+          <option value="light">Light</option>
+        </select>
+
+        <label>Default Timezone</label>
+        <select id="timezone">
+          <option value="UTC">UTC</option>
+          <option value="IST">IST</option>
+          <option value="EST">EST</option>
+          <option value="PST">PST</option>
+        </select>
+      </div>
+
+      <!-- Trading Settings -->
+      <div class="card">
+        <h2>Trading Settings</h2>
+        <label>Default Lot Size</label>
+        <input type="number" id="lot-size" value="0.01" step="0.01">
+
+        <label>Max Open Trades</label>
+        <input type="number" id="max-trades" value="5">
+
+        <label>Enable Auto Trading</label>
+        <input type="checkbox" id="auto-trading"> Yes
+
+        <label>Risk Management</label>
+        <select id="risk-level">
+          <option value="low">Low</option>
+          <option value="medium" selected>Medium</option>
+          <option value="high">High</option>
+        </select>
+      </div>
+
+      <!-- Alerts / Notifications -->
+      <div class="card">
+        <h2>Alerts & Notifications</h2>
+        <label>Email Alerts</label>
+        <input type="text" id="email-alert" placeholder="your@email.com">
+
+        <label>Mobile Notifications</label>
+        <input type="text" id="mobile-alert" placeholder="+91-XXXXXXXXXX">
+
+        <label class="section-header">Notification Types</label>
+        <input type="checkbox" id="price-alerts"> Price Alerts<br>
+        <input type="checkbox" id="trade-alerts"> Trade Execution Alerts<br>
+        <input type="checkbox" id="pnl-alerts"> PnL Threshold Alerts
+      </div>
+
+      <!-- Display Options -->
+      <div class="card">
+        <h2>Display Options</h2>
+        <label>Chart Type</label>
+        <select id="chart-type">
+          <option value="candlestick" selected>Candlestick</option>
+          <option value="line">Line</option>
+          <option value="ohlc">OHLC</option>
+        </select>
+
+        <label>Show Indicators</label>
+        <input type="checkbox" id="show-ema" checked> EMA<br>
+        <input type="checkbox" id="show-atr" checked> ATR<br>
+        <input type="checkbox" id="show-rsi"> RSI
+      </div>
+
+      <!-- API & Integration -->
+      <div class="card">
+        <h2>API & Integration</h2>
+        <label>Broker API Key</label>
+        <input type="text" id="api-key">
+
+        <label>Broker API Secret</label>
+        <input type="text" id="api-secret">
+
+        <label>Enable Webhooks</label>
+        <input type="checkbox" id="webhooks"> Yes
+      </div>
+
+      <!-- MetaTrader Credentials -->
+      <div class="card">
+        <h2>MetaTrader Credentials</h2>
+        <label>Login</label>
+        <input type="text" id="mt-login" placeholder="MT account login">
+
+        <label>Password</label>
+        <input type="password" id="mt-password" placeholder="MT password">
+
+        <label>Server</label>
+        <input type="text" id="mt-server" placeholder="Broker server">
+
+        <label>Broker Name</label>
+        <input type="text" id="mt-broker" placeholder="Broker">
+      </div>
+
+      <!-- Actions -->
+      <!-- Actions -->
+  <div class="card" style="grid-column: span 2;">
+    <h2>Actions</h2>
+    <button onclick="saveSettings()">Save Settings</button>
+    <button onclick="resetSettings()">Reset to Default</button>
+    <div id="settings-status" style="margin-top:10px;"></div>
+
+    <div class="version">Version: 1.0.0</div>
+    <div class="about" style="width:100%;">
+      About: Quant Terminal is a trading and analysis platform for BTC and other instruments. 
+      Configure trading parameters, alerts, display options, and connect your broker or MetaTrader account here.
+    </div>
+  </div>
+
+    </div>
+  </div>
+
+  <div class="footer">© Samxiar 2025</div>
+
+  <script>
+    function saveSettings() {
+      const settings = {
+        username: document.getElementById("username").value,
+        theme: document.getElementById("theme-select").value,
+        timezone: document.getElementById("timezone").value,
+        lotSize: document.getElementById("lot-size").value,
+        maxTrades: document.getElementById("max-trades").value,
+        autoTrading: document.getElementById("auto-trading").checked,
+        riskLevel: document.getElementById("risk-level").value,
+        emailAlert: document.getElementById("email-alert").value,
+        mobileAlert: document.getElementById("mobile-alert").value,
+        notifications: {
+          price: document.getElementById("price-alerts").checked,
+          trade: document.getElementById("trade-alerts").checked,
+          pnl: document.getElementById("pnl-alerts").checked
+        },
+        chartType: document.getElementById("chart-type").value,
+        showIndicators: {
+          ema: document.getElementById("show-ema").checked,
+          atr: document.getElementById("show-atr").checked,
+          rsi: document.getElementById("show-rsi").checked
+        },
+        apiKey: document.getElementById("api-key").value,
+        apiSecret: document.getElementById("api-secret").value,
+        webhooks: document.getElementById("webhooks").checked,
+        mtCredentials: {
+          login: document.getElementById("mt-login").value,
+          password: document.getElementById("mt-password").value,
+          server: document.getElementById("mt-server").value,
+          broker: document.getElementById("mt-broker").value
+        }
+      };
+      console.log("Saved Settings:", settings);
+      document.getElementById("settings-status").innerText = "Settings Saved!";
+    }
+
+    function resetSettings() {
+      document.querySelectorAll("input").forEach(input => {
+        if(input.type === "checkbox") input.checked = false;
+        else input.value = "";
+      });
+      document.querySelectorAll("select").forEach(sel => sel.selectedIndex = 0);
+      document.getElementById("settings-status").innerText = "Settings Reset!";
+    }
+  </script>
 </body>
 </html>
-{% endblock %}
